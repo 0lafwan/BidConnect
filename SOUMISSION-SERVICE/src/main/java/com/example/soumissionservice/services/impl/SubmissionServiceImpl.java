@@ -6,6 +6,7 @@ import com.example.soumissionservice.entity.SubmissionStatus;
 import com.example.soumissionservice.feignclients.*;
 import com.example.soumissionservice.mapper.SubmissionMapper;
 import com.example.soumissionservice.repository.SubmissionRepository;
+import com.example.soumissionservice.services.EvaluationService;
 import com.example.soumissionservice.services.SubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final TenderClient tenderClient;
     private final DocumentClient documentClient;
     private final AIClient aiClient;
+    private final EvaluationService evaluationService;
     // private final UserClient userClient;
     // private final NotificationClient notificationClient;
     private final SubmissionMapper subMapper;
@@ -39,7 +41,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         // 1️⃣ Vérifie si l’appel d'offre est ouvert
         TenderResponse tender = tenderClient.getTender(req.tenderId());
-        if (!"PUBLISHED".equals(tender.status())) {
+        if (!"DRAFT".equals(tender.status())) {
             throw new RuntimeException("Tender is not open for submission");
         }
 
@@ -59,11 +61,6 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         repo.save(s);
 
-
-
-
-
-
         // 4️⃣ Analyse IA
 
         aiClient.ingestFile(new IngestionRequest(s.getDocumentId(),
@@ -78,6 +75,12 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         String ragResult = chatResponse.answer();
         s.setRagAnalysis(ragResult);
+
+        //Calculate Score
+
+        Double score = evaluationService.evaluateSubmission(s.getId());
+        s.setScore(score);
+
 
         repo.save(s);
 
