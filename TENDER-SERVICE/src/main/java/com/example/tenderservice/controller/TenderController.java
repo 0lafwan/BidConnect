@@ -1,10 +1,7 @@
 package com.example.tenderservice.controller;
 
 import com.example.tenderservice.constants.TenderConstants;
-import com.example.tenderservice.dto.ErrorResponseDto;
-import com.example.tenderservice.dto.TenderContactInfoDto;
-import com.example.tenderservice.dto.TenderRequestDTO;
-import com.example.tenderservice.dto.TenderResponseDTO;
+import com.example.tenderservice.dto.*;
 import com.example.tenderservice.service.ITenderService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -174,6 +171,19 @@ public class TenderController {
     public ResponseEntity<TenderResponseDTO> closeTender(@PathVariable Long id) {
         return ResponseEntity.ok(tenderService.closeTender(id));
     }
+
+
+    // ============================================================
+// GET CRITERIA BY TENDER ID
+// ============================================================
+    @GetMapping("/{id}/criteria")
+    public ResponseEntity<List<EvaluationCriterionResponseDTO>> getTenderCriteria(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(tenderService.getCriteriaByTenderId(id));
+    }
+
+
 
     // ============================================================
     // CONFIG-SERVER TEST ENDPOINT ----------------------------------

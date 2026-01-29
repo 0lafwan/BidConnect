@@ -25,4 +25,7 @@ public interface ITenderService {
 
     TenderResponseDTO closeTender(Long tenderId);
 
+    List<EvaluationCriterionResponseDTO> getCriteriaByTenderId(Long tenderId);
+
+
 }

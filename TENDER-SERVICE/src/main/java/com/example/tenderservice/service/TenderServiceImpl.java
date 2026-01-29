@@ -8,6 +8,7 @@ import com.example.tenderservice.entity.enumeration.TenderStatus;
 import com.example.tenderservice.exception.ResourceNotFoundException;
 import com.example.tenderservice.feignclients.DocumentClient;
 import com.example.tenderservice.mapper.TenderMapper;
+import com.example.tenderservice.repository.EvaluationCriterionRepository;
 import com.example.tenderservice.repository.TenderRepository;
 import com.example.tenderservice.service.ITenderService;
 
@@ -27,6 +28,9 @@ public class TenderServiceImpl implements ITenderService {
     private final TenderRepository tenderRepository;
     private final TenderMapper tenderMapper;
     private final DocumentClient documentClient;
+
+    private final EvaluationCriterionRepository criterionRepository;
+
 
     @Override
     public TenderResponseDTO createTender(TenderRequestDTO dto,List<MultipartFile> files) {
@@ -183,5 +187,23 @@ public class TenderServiceImpl implements ITenderService {
 
         return tenderMapper.toResponseDTO(tender);
     }
+
+
+    @Override
+    public List<EvaluationCriterionResponseDTO> getCriteriaByTenderId(Long tenderId) {
+
+        List<EvaluationCriterion> criteria =
+                criterionRepository.findByTenderId(tenderId);
+
+        return criteria.stream()
+                .map(c -> new EvaluationCriterionResponseDTO(
+                        c.getId(),
+                        c.getType(),
+                        c.getWeight()
+                ))
+                .toList();
+    }
+
+
 }
 
