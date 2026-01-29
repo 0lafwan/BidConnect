@@ -1,8 +1,6 @@
 package com.example.soumissionservice.services.impl;
 
-import com.example.soumissionservice.dto.SubmissionRequest;
-import com.example.soumissionservice.dto.SubmissionResponse;
-import com.example.soumissionservice.dto.TenderResponse;
+import com.example.soumissionservice.dto.*;
 import com.example.soumissionservice.entity.Submission;
 import com.example.soumissionservice.entity.SubmissionStatus;
 import com.example.soumissionservice.feignclients.*;
@@ -62,8 +60,23 @@ public class SubmissionServiceImpl implements SubmissionService {
         repo.save(s);
 
 
+
+
+
+
         // 4️⃣ Analyse IA
-        String ragResult = aiClient.analyze();
+
+        aiClient.ingestFile(new IngestionRequest(s.getDocumentId(),
+                "http://localhost:8081/api/documents/"+s.getDocumentId()+"/download"));
+
+        ChatRequest chatrequest =new ChatRequest(
+                "give me key point's in the submission with the supplierId: "+s.getSupplierId(),
+                "null"
+        );
+
+        ChatResponse chatResponse = aiClient.analyze(chatrequest);
+
+        String ragResult = chatResponse.answer();
         s.setRagAnalysis(ragResult);
 
         repo.save(s);
