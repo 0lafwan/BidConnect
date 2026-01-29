@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: "configserver"
+  profiles:
+    # active: native
+    active: git
+  cloud:
+    config:
+      server:
+        # native:
+        # search-locations: "classpath:/config"
+        # search-locations: "file:///User...."
+        git:
+          uri: "https://github.com/Jabour-Salahddine/binConnect-config.git"
+          default-label: master
+          timeout: 5
+          clone-on-start: true
+          force-pull: true
+
+#    Si quelqu’un clone le projet et n’a pas RabbitMQ, il peut avoir:
+#    erreurs de connexion en boucle
+#    parfois démarrage lent / noisy logs
+#    ✅ Solution simple: désactiver bus/monitor en dev (ou rendre optionnel) : decommenter ci-dessous :
+#    cloud:
+#      bus:
+#        enabled: false
+#      config:
+#        monitor:
+#          enabled: false
+
+
+  rabbitmq:
+    host: "localhost"
+    port: 5672
+    username: "guest"
+    password: "guest"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+server:
+    port: 8071

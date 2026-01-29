@@ -1,0 +1,18 @@
+# Maven (ignore partout)
+**/target/
+
+# IntelliJ
+.idea/
+**/.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Env
+.env
+*.local
