@@ -6,6 +6,7 @@ import com.example.tenderservice.entity.Tender;
 import com.example.tenderservice.entity.TenderDocumentRef;
 import com.example.tenderservice.entity.enumeration.TenderStatus;
 import com.example.tenderservice.exception.ResourceNotFoundException;
+import com.example.tenderservice.feignclients.AIClient;
 import com.example.tenderservice.feignclients.DocumentClient;
 import com.example.tenderservice.mapper.TenderMapper;
 import com.example.tenderservice.repository.EvaluationCriterionRepository;
@@ -28,6 +29,7 @@ public class TenderServiceImpl implements ITenderService {
     private final TenderRepository tenderRepository;
     private final TenderMapper tenderMapper;
     private final DocumentClient documentClient;
+    private final AIClient aiClient;
 
     private final EvaluationCriterionRepository criterionRepository;
 
@@ -55,6 +57,12 @@ public class TenderServiceImpl implements ITenderService {
 //                        L’URL est calculée dans les DTO de réponse, pas en base
 
                         String documentId = documentClient.upload(file);
+
+                        // AI-SERVICE Ingestion
+
+                        aiClient.ingestFile(new IngestionRequest(documentId,
+                                "http://localhost:8081/api/documents/"+documentId+"/download"));
+
                         return TenderDocumentRef.builder()
                                 .documentId(documentId)          // ID dans le storage
                                 .fileName(file.getOriginalFilename())
