@@ -41,3 +41,32 @@ langchain4j:
      host: localhost
      port: 6334  # gRPC port (6333 is HTTP REST API)
      collection-name: bid_embeddings
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:  # to enable /shutdown endpoint : to test how eureka deregister works when we call shutdown endpoint.
+    shutdown:
+      access: unrestricted
+  info:  # to enable /info endpoint that we just added below
+    env:
+      enabled: true
+
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/
+
+
+info:  # useful in the dashboard of eureka server, went to see application details when registered
+  app:
+    name: "ai-service"
+    description: "BindConnect AI Service Application"
