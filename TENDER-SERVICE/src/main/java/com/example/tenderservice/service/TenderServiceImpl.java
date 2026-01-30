@@ -15,6 +15,7 @@ import com.example.tenderservice.service.ITenderService;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,6 +33,9 @@ public class TenderServiceImpl implements ITenderService {
     private final AIClient aiClient;
 
     private final EvaluationCriterionRepository criterionRepository;
+
+    @Value("${services.document.base-url}")
+    private String documentServiceUrl;
 
 
     @Override
@@ -60,8 +64,10 @@ public class TenderServiceImpl implements ITenderService {
 
                         // AI-SERVICE Ingestion
 
-                        aiClient.ingestFile(new IngestionRequest(documentId,
-                                "http://localhost:8081/api/documents/"+documentId+"/download"));
+                        String downloadUrl =
+                                documentServiceUrl + "/api/documents/" + documentId + "/download";
+
+                        aiClient.ingestFile(new IngestionRequest(documentId, downloadUrl));
 
                         return TenderDocumentRef.builder()
                                 .documentId(documentId)          // ID dans le storage

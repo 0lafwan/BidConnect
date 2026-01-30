@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @FeignClient(
         name = "document-service",
-        url = "http://localhost:8081"   // port du document-service
+        url = "${services.document.base-url}"   // port du document-service
 )
 public interface DocumentClient {
 

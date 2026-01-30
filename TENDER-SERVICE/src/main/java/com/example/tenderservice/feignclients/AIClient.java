@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
 
-@FeignClient(name = "AI-SERVICE", url = "http://localhost:8085")
+@FeignClient(name = "AI-SERVICE", url = "${services.ai.base-url}")
 @Component
 public interface AIClient {
 

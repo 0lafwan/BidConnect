@@ -66,3 +66,20 @@ management:
 springdoc:
   swagger-ui:
     path: /docs
+
+
+services:
+  document:
+    base-url: "http://localhost:8081"
+
+  ai:
+    base-url: "http://localhost:8085"
+
+
+
+
+
+
+
+
+

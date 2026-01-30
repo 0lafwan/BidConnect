@@ -1,20 +1,28 @@
 package com.example.tenderservice.mapper;
 
+import com.example.tenderservice.config.ServiceUrlsConfig;
 import com.example.tenderservice.dto.*;
 import com.example.tenderservice.entity.TenderDocumentRef;
 import org.mapstruct.*;
 import org.mapstruct.Mapping;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @Mapper(componentModel = "spring")
-public interface TenderDocumentRefMapper {
+public abstract class TenderDocumentRefMapper {
 
-    TenderDocumentRef toEntity(TenderDocumentRefRequestDTO dto);
+    @Autowired
+    protected ServiceUrlsConfig serviceUrls;
+
+    public TenderDocumentRef toEntity(TenderDocumentRefRequestDTO dto) {
+        // default mapping
+        return null;
+    }
 
     @Mapping(
             target = "downloadUrl",
-            expression = "java(\"http://localhost:8081/api/documents/\" + entity.getDocumentId() + \"/download\")"
+            expression = "java(serviceUrls.getDocumentServiceUrl() + \"/api/documents/\" + entity.getDocumentId() + \"/download\")"
     )
-
-    TenderDocumentRefResponseDTO toResponseDTO(TenderDocumentRef entity);
+    public abstract TenderDocumentRefResponseDTO toResponseDTO(TenderDocumentRef entity);
 }
+
