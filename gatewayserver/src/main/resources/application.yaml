@@ -11,7 +11,8 @@ spring:
         webflux:
           discovery:
             locator:
-              enabled: true
+              enabled: false # we are disabling the default routing behavior
+              lowerCaseServiceId: true
 
 
 management:
