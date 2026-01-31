@@ -142,7 +142,7 @@ services:
       LANGCHAIN4J_QDRANT_PORT: 6334
 
       # OpenAI key (do NOT hardcode)
-      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
 
     extends:
       file: common-config.yml

@@ -64,23 +64,21 @@ public class SubmissionServiceImpl implements SubmissionService {
         // 4️⃣ Analyse IA
 
         aiClient.ingestFile(new IngestionRequest(s.getDocumentId(),
-                "http://localhost:8081/api/documents/"+s.getDocumentId()+"/download"));
+                "http://localhost:8081/api/documents/" + s.getDocumentId() + "/download"));
 
-        ChatRequest chatrequest =new ChatRequest(
-                "give me key point's in the submission with the supplierId: "+s.getSupplierId(),
-                "null"
-        );
+        ChatRequest chatrequest = new ChatRequest(
+                "give me key point's in the submission with the supplierId: " + s.getSupplierId(),
+                "null");
 
         ChatResponse chatResponse = aiClient.analyze(chatrequest);
 
         String ragResult = chatResponse.answer();
         s.setRagAnalysis(ragResult);
 
-        //Calculate Score
+        // Calculate Score
 
         Double score = evaluationService.evaluateSubmission(s.getId());
         s.setScore(score);
-
 
         repo.save(s);
 
