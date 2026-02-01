@@ -1,0 +1,115 @@
+<!-- Floating AI Button -->
+<button
+  *ngIf="!isOpen()"
+  (click)="toggleChat()"
+  class="fixed bottom-6 right-6 z-50 bg-brutal-neon text-black font-bold px-6 py-4 rounded-lg shadow-brutal hover:shadow-brutal-lg transition-all duration-300 flex items-center gap-3 animate-pulse-slow group"
+  aria-label="Ouvrir l'assistant IA">
+  <svg class="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+  </svg>
+  <span class="text-lg">Assistant IA</span>
+  <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
+</button>
+
+<!-- Chat Window -->
+<div
+  *ngIf="isOpen()"
+  class="chat-window fixed bottom-6 right-6 z-50 w-[420px] h-[600px] bg-brutal-dark/95 backdrop-blur-xl border-4 border-brutal-neon rounded-2xl shadow-brutal-xl flex flex-col overflow-hidden">
+  
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-brutal-neon to-brutal-accent p-4 flex items-center justify-between border-b-4 border-black">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+        <svg class="w-6 h-6 text-brutal-neon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-black font-bold text-lg">Assistant IA</h3>
+        <p class="text-black/70 text-xs">Propulsé par RAG</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button
+        (click)="clearChat()"
+        class="text-black hover:text-black/70 transition-colors p-2"
+        title="Réinitialiser la conversation">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+      </button>
+      <button
+        (click)="toggleChat()"
+        class="text-black hover:text-black/70 transition-colors p-2"
+        title="Fermer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages Container -->
+  <div class="messages-container flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-brutal-dark/50 to-brutal-dark">
+    <div *ngFor="let message of messages()" 
+         class="message-wrapper"
+         [class.user-message]="message.role === 'user'"
+         [class.assistant-message]="message.role === 'assistant'">
+      
+      <!-- User Message -->
+      <div *ngIf="message.role === 'user'" class="flex justify-end">
+        <div class="bg-brutal-neon text-black px-4 py-3 rounded-2xl rounded-tr-none max-w-[80%] shadow-brutal">
+          <p class="text-sm font-medium whitespace-pre-wrap">{{ message.content }}</p>
+          <span class="text-xs text-black/60 mt-1 block">{{ message.timestamp | date:'HH:mm' }}</span>
+        </div>
+      </div>
+
+      <!-- Assistant Message -->
+      <div *ngIf="message.role === 'assistant'" class="flex justify-start">
+        <div class="bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-2xl rounded-tl-none max-w-[85%] shadow-lg border border-white/20">
+          <div class="text-sm whitespace-pre-wrap leading-relaxed" [innerHTML]="formatMessage(message.content)"></div>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="text-xs text-white/60">{{ message.timestamp | date:'HH:mm' }}</span>
+            <span *ngIf="message.isTyping" class="text-xs text-brutal-neon animate-pulse">✍️ En train d'écrire...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="isLoading()" class="flex justify-start">
+      <div class="bg-white/10 backdrop-blur-sm px-4 py-3 rounded-2xl rounded-tl-none">
+        <div class="flex gap-2">
+          <div class="w-2 h-2 bg-brutal-neon rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+          <div class="w-2 h-2 bg-brutal-neon rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+          <div class="w-2 h-2 bg-brutal-neon rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="p-4 bg-brutal-dark border-t-4 border-brutal-neon/30">
+    <div class="flex gap-2">
+      <input
+        type="text"
+        [(ngModel)]="userInput"
+        (keypress)="handleKeyPress($event)"
+        [disabled]="isLoading()"
+        placeholder="Posez votre question..."
+        class="flex-1 bg-white/10 backdrop-blur-sm text-white px-4 py-3 rounded-xl border-2 border-white/20 focus:border-brutal-neon focus:outline-none transition-colors placeholder-white/40 disabled:opacity-50"
+        autocomplete="off">
+      <button
+        (click)="sendMessage()"
+        [disabled]="!userInput().trim() || isLoading()"
+        class="bg-brutal-neon text-black px-6 py-3 rounded-xl font-bold hover:bg-brutal-accent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-brutal hover:shadow-brutal-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+        </svg>
+      </button>
+    </div>
+    <p class="text-xs text-white/40 mt-2 text-center">
+      💡 Appuyez sur Entrée pour envoyer
+    </p>
+  </div>
+</div>

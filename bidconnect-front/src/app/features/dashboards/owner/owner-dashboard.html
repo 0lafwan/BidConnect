@@ -1,0 +1,258 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">OWNER DASHBOARD</h1>
+      <p class="dashboard-subtitle">Bienvenue, {{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</p>
+    </div>
+    <button (click)="logout()" class="btn-logout">
+      DÉCONNEXION
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3 class="stat-label">Mes Appels d'offres</h3>
+      <p class="stat-value stat-accent">{{ tenders().length }}</p>
+    </div>
+    <div class="stat-card">
+      <h3 class="stat-label">Publiés</h3>
+      <p class="stat-value stat-neon">{{ getPublishedCount() }}</p>
+    </div>
+    <div class="stat-card">
+      <h3 class="stat-label">Brouillons</h3>
+      <p class="stat-value">{{ getDraftCount() }}</p>
+    </div>
+  </div>
+
+  <!-- Message d'erreur global -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <svg class="error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Vue Liste -->
+  <div class="content-section" [style.display]="viewState() === 'CREATE' ? 'none' : 'block'">
+    <!-- Header de section -->
+    <div class="section-header">
+      <h2 class="section-title">MES APPELS D'OFFRES</h2>
+      <button (click)="switchToCreate()" class="btn-primary">
+        <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        NOUVEAU PROJET
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" [style.display]="isLoading() ? 'flex' : 'none'">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Chargement des appels d'offres...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" [style.display]="!isLoading() && tenders().length === 0 ? 'flex' : 'none'">
+      <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 class="empty-title">Aucun appel d'offres</h3>
+      <p class="empty-text">Créez votre premier appel d'offres pour commencer</p>
+      <button (click)="switchToCreate()" class="btn-primary mt-6">
+        CRÉER UN APPEL D'OFFRES
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div #tableContainer class="table-container" [style.display]="!isLoading() && tenders().length > 0 ? 'block' : 'none'">
+      <table class="tender-table">
+        <thead>
+          <tr class="table-header-row">
+            <th class="table-header">TITRE</th>
+            <th class="table-header">DEADLINE</th>
+            <th class="table-header">STATUT</th>
+            <th class="table-header">CRITÈRES</th>
+            <th class="table-header text-right">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tender of tenders(); track tender.id) {
+            <tr class="tender-row" (click)="viewTenderDetails(tender.id)">
+              <td class="table-cell">
+                <div class="tender-title">{{ tender.title }}</div>
+                <div class="tender-description">{{ tender.description }}</div>
+              </td>
+              <td class="table-cell">
+                <div class="tender-deadline">{{ tender.deadline }}</div>
+                @if (tender.publicationDate) {
+                  <div class="tender-pub-date">Publié le {{ tender.publicationDate }}</div>
+                }
+              </td>
+              <td class="table-cell">
+                <span class="status-badge" [ngClass]="getStatusClass(tender.status)">
+                  {{ getStatusLabel(tender.status) }}
+                </span>
+              </td>
+              <td class="table-cell">
+                <div class="criteria-list">
+                  @for (criterion of tender.criteria; track criterion.id) {
+                    <div class="criterion-item">
+                      <span class="criterion-type">{{ criterion.type }}</span>
+                      <span class="criterion-weight">{{ criterion.weight }}%</span>
+                    </div>
+                  }
+                </div>
+              </td>
+              <td class="table-cell text-right">
+                <div class="action-buttons">
+                  @if (tender.status === TenderStatus.DRAFT) {
+                    <button 
+                      (click)="publishTender(tender.id, $event)" 
+                      class="btn-action btn-publish"
+                      title="Publier"
+                    >
+                      <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                  }
+                  @if (tender.status === TenderStatus.PUBLISHED) {
+                    <button 
+                      (click)="closeTender(tender.id, $event)" 
+                      class="btn-action btn-close"
+                      title="Clôturer"
+                    >
+                      <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  }
+                  <button 
+                    (click)="deleteTender(tender.id, $event)" 
+                    class="btn-action btn-delete"
+                    title="Supprimer"
+                  >
+                    <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Vue Création -->
+  <div #formContainer class="content-section" [style.display]="viewState() === 'LIST' ? 'none' : 'block'">
+    <!-- Header de section -->
+    <div class="section-header">
+      <h2 class="section-title">CRÉER UN APPEL D'OFFRES</h2>
+      <button (click)="switchToList()" class="btn-secondary">
+        <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        RETOUR
+      </button>
+    </div>
+
+    <!-- Formulaire -->
+    <form [formGroup]="tenderForm" (ngSubmit)="onSubmit()" class="tender-form">
+      <!-- Titre -->
+      <div class="form-group">
+        <label for="title" class="form-label">TITRE DU PROJET</label>
+        <input
+          id="title"
+          type="text"
+          formControlName="title"
+          class="form-input"
+          [class.error]="hasError('title')"
+          placeholder="Ex: Construction du Nouveau Pont"
+        />
+        @if (hasError('title')) {
+          <span class="field-error">{{ getErrorMessage('title') }}</span>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description" class="form-label">DESCRIPTION</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          class="form-textarea"
+          [class.error]="hasError('description')"
+          placeholder="Décrivez votre projet en détail..."
+          rows="6"
+        ></textarea>
+        @if (hasError('description')) {
+          <span class="field-error">{{ getErrorMessage('description') }}</span>
+        }
+      </div>
+
+      <!-- Deadline et Budget -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="deadline" class="form-label">DATE LIMITE</label>
+          <input
+            id="deadline"
+            type="date"
+            formControlName="deadline"
+            class="form-input"
+            [class.error]="hasError('deadline')"
+          />
+          @if (hasError('deadline')) {
+            <span class="field-error">{{ getErrorMessage('deadline') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="budget" class="form-label">BUDGET ESTIMÉ (€)</label>
+          <input
+            id="budget"
+            type="number"
+            formControlName="budget"
+            class="form-input"
+            [class.error]="hasError('budget')"
+            placeholder="Ex: 500000"
+          />
+          @if (hasError('budget')) {
+            <span class="field-error">{{ getErrorMessage('budget') }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Info critères -->
+      <div class="info-box">
+        <svg class="info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <p class="info-title">Critères d'évaluation par défaut</p>
+          <p class="info-text">Prix (40%), Technique (35%), Délai (25%)</p>
+        </div>
+      </div>
+
+      <!-- Boutons -->
+      <div class="form-actions">
+        <button type="button" (click)="switchToList()" class="btn-cancel">
+          ANNULER
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span class="loading-spinner-sm"></span>
+            <span>CRÉATION EN COURS...</span>
+          } @else {
+            <span>CRÉER L'APPEL D'OFFRES</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

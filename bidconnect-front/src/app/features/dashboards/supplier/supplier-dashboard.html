@@ -1,0 +1,230 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="dashboard-title">SUPPLIER DASHBOARD</h1>
+      <p class="dashboard-subtitle">Bienvenue, {{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</p>
+    </div>
+    <button (click)="logout()" class="btn-logout">
+      DÉCONNEXION
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3 class="stat-label">Opportunités disponibles</h3>
+      <p class="stat-value stat-neon">{{ tenders().length }}</p>
+    </div>
+    <div class="stat-card">
+      <h3 class="stat-label">Mes soumissions</h3>
+      <p class="stat-value stat-accent">0</p>
+    </div>
+    <div class="stat-card">
+      <h3 class="stat-label">Acceptées</h3>
+      <p class="stat-value">0</p>
+    </div>
+  </div>
+
+  <!-- Message d'erreur global -->
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <svg class="error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Section Opportunités -->
+  <div class="content-section">
+    <!-- Header de section -->
+    <div class="section-header">
+      <h2 class="section-title">OPPORTUNITÉS D'APPELS D'OFFRES</h2>
+      <button (click)="loadOpportunities()" class="btn-secondary">
+        <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        ACTUALISER
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" [style.display]="isLoading() ? 'flex' : 'none'">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Chargement des opportunités...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" [style.display]="!isLoading() && tenders().length === 0 ? 'flex' : 'none'">
+      <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 class="empty-title">Aucune opportunité disponible</h3>
+      <p class="empty-text">Revenez plus tard pour découvrir de nouveaux appels d'offres</p>
+    </div>
+
+    <!-- Grid des opportunités -->
+    <div #cardsContainer class="opportunities-grid" [style.display]="!isLoading() && tenders().length > 0 ? 'grid' : 'none'">
+      @for (tender of tenders(); track tender.id) {
+        <div class="opportunity-card">
+          <!-- Header de la carte -->
+          <div class="card-header">
+            <h3 class="card-title">{{ tender.title }}</h3>
+            <span class="days-badge" [ngClass]="getDaysClass(getDaysRemaining(tender.deadline))">
+              {{ getDaysRemaining(tender.deadline) }} JOURS
+            </span>
+          </div>
+
+          <!-- Description -->
+          <p class="card-description">{{ tender.description }}</p>
+
+          <!-- Critères d'évaluation -->
+          <div class="card-criteria">
+            <h4 class="criteria-title">CRITÈRES D'ÉVALUATION</h4>
+            <div class="criteria-list">
+              @for (criterion of tender.criteria; track criterion.id) {
+                <div class="criterion-item">
+                  <span class="criterion-type">{{ criterion.type }}</span>
+                  <span class="criterion-weight">{{ criterion.weight }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Footer avec deadline et action -->
+          <div class="card-footer">
+            <div class="deadline-info">
+              <svg class="deadline-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span class="deadline-text">{{ tender.deadline }}</span>
+            </div>
+            <button (click)="openSubmissionModal(tender)" class="btn-apply">
+              POSTULER
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Modal de soumission -->
+<div class="modal-overlay" [style.display]="showModal() ? 'flex' : 'none'" (click)="closeModal()">
+  <div #modal class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Header de la modale -->
+    <div class="modal-header">
+      <h2 class="modal-title">SOUMETTRE UNE CANDIDATURE</h2>
+      <button (click)="closeModal()" class="btn-close">
+        <svg class="close-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Info du tender -->
+    @if (selectedTender()) {
+      <div class="tender-info">
+        <h3 class="tender-info-title">{{ selectedTender()!.title }}</h3>
+        <p class="tender-info-description">{{ selectedTender()!.description }}</p>
+      </div>
+    }
+
+    <!-- Message d'erreur dans la modale -->
+    @if (errorMessage()) {
+      <div class="error-banner">
+        <svg class="error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Formulaire -->
+    <form [formGroup]="submissionForm" (ngSubmit)="onSubmit()" class="submission-form">
+      <!-- Prix -->
+      <div class="form-group">
+        <label for="price" class="form-label">PRIX PROPOSÉ (€)</label>
+        <input
+          id="price"
+          type="number"
+          formControlName="price"
+          class="form-input"
+          [class.error]="hasError('price')"
+          placeholder="Ex: 450000"
+        />
+        @if (hasError('price')) {
+          <span class="field-error">{{ getErrorMessage('price') }}</span>
+        }
+      </div>
+
+      <!-- Score Technique -->
+      <div class="form-group">
+        <label for="technical" class="form-label">SCORE TECHNIQUE (0-100)</label>
+        <input
+          id="technical"
+          type="number"
+          formControlName="technical"
+          class="form-input"
+          [class.error]="hasError('technical')"
+          placeholder="Ex: 85"
+          min="0"
+          max="100"
+        />
+        @if (hasError('technical')) {
+          <span class="field-error">{{ getErrorMessage('technical') }}</span>
+        }
+      </div>
+
+      <!-- Score Délai -->
+      <div class="form-group">
+        <label for="deadline" class="form-label">SCORE DÉLAI (0-100)</label>
+        <input
+          id="deadline"
+          type="number"
+          formControlName="deadline"
+          class="form-input"
+          [class.error]="hasError('deadline')"
+          placeholder="Ex: 90"
+          min="0"
+          max="100"
+        />
+        @if (hasError('deadline')) {
+          <span class="field-error">{{ getErrorMessage('deadline') }}</span>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description" class="form-label">DESCRIPTION DE VOTRE OFFRE</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          class="form-textarea"
+          [class.error]="hasError('description')"
+          placeholder="Décrivez votre proposition en détail (minimum 20 caractères)..."
+          rows="5"
+        ></textarea>
+        @if (hasError('description')) {
+          <span class="field-error">{{ getErrorMessage('description') }}</span>
+        }
+      </div>
+
+      <!-- Boutons -->
+      <div class="form-actions">
+        <button type="button" (click)="closeModal()" class="btn-cancel">
+          ANNULER
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <span class="loading-spinner-sm"></span>
+            <span>ENVOI EN COURS...</span>
+          } @else {
+            <span>ENVOYER LA SOUMISSION</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

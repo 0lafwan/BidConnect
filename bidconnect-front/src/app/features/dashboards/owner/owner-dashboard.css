@@ -1,0 +1,382 @@
+/* Container principal */
+.dashboard-container {
+  @apply min-h-screen bg-brutal-black text-white p-4 md:p-8;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Header */
+.dashboard-header {
+  @apply flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-white/10;
+}
+
+.dashboard-title {
+  @apply text-3xl md:text-4xl font-bold uppercase tracking-tight;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.dashboard-subtitle {
+  @apply text-white/60 text-sm md:text-base mt-1;
+}
+
+.btn-logout {
+  @apply px-6 py-3 border border-brutal-accent text-brutal-accent;
+  @apply hover:bg-brutal-accent hover:text-brutal-black;
+  @apply transition-all duration-300;
+  @apply text-sm uppercase tracking-wider font-medium;
+}
+
+/* Stats Grid */
+.stats-grid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8;
+}
+
+.stat-card {
+  @apply bg-white/5 border border-white/10 p-6;
+  @apply hover:border-white/20 transition-colors duration-300;
+}
+
+.stat-label {
+  @apply text-sm md:text-base font-medium text-white/70 mb-2 uppercase tracking-wider;
+}
+
+.stat-value {
+  @apply text-3xl md:text-4xl font-bold;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.stat-accent {
+  @apply text-brutal-accent;
+}
+
+.stat-neon {
+  @apply text-brutal-neon;
+}
+
+/* Error Banner */
+.error-banner {
+  @apply flex items-center gap-3 mb-6 p-4;
+  @apply bg-brutal-accent/10 border border-brutal-accent/30;
+  @apply text-brutal-accent text-sm;
+}
+
+.error-icon {
+  @apply w-5 h-5 flex-shrink-0;
+}
+
+/* Content Section */
+.content-section {
+  @apply bg-white/5 border border-white/10 p-4 md:p-6;
+  opacity: 1; /* Important: toujours visible par défaut */
+}
+
+.content-section.hidden {
+  display: none;
+}
+
+/* Section Header */
+.section-header {
+  @apply flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6;
+}
+
+.section-title {
+  @apply text-xl md:text-2xl font-bold uppercase tracking-tight;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Buttons */
+.btn-primary {
+  @apply flex items-center gap-2 px-6 py-3;
+  @apply bg-transparent border border-white text-white;
+  @apply hover:bg-white hover:text-brutal-black;
+  @apply transition-all duration-300;
+  @apply text-sm uppercase tracking-wider font-medium;
+}
+
+.btn-secondary {
+  @apply flex items-center gap-2 px-6 py-3;
+  @apply bg-transparent border border-white/30 text-white/70;
+  @apply hover:border-white hover:text-white;
+  @apply transition-all duration-300;
+  @apply text-sm uppercase tracking-wider font-medium;
+}
+
+.btn-icon {
+  @apply w-5 h-5;
+}
+
+/* Loading State */
+.loading-container {
+  @apply flex flex-col items-center justify-center py-16;
+  opacity: 1; /* Important */
+}
+
+.loading-container.hidden {
+  display: none;
+}
+
+.loading-spinner {
+  @apply w-12 h-12 border-4 border-white/20 border-t-white rounded-full;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  @apply mt-4 text-white/60 text-sm uppercase tracking-wider;
+}
+
+/* Empty State */
+.empty-state {
+  @apply flex flex-col items-center justify-center py-16 text-center;
+  opacity: 1; /* Important */
+}
+
+.empty-state.hidden {
+  display: none;
+}
+
+.empty-icon {
+  @apply w-16 h-16 text-white/30 mb-4;
+}
+
+.empty-title {
+  @apply text-xl font-bold mb-2;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.empty-text {
+  @apply text-white/60 text-sm;
+}
+
+/* Table */
+.table-container {
+  @apply overflow-x-auto;
+  opacity: 1; /* Important */
+}
+
+.table-container.hidden {
+  display: none;
+}
+
+.tender-table {
+  @apply w-full border-collapse;
+}
+
+.table-header-row {
+  @apply border-b border-white/20;
+}
+
+.table-header {
+  @apply px-4 py-3 text-left text-xs uppercase tracking-widest text-white/70 font-medium;
+}
+
+.tender-row {
+  @apply border-b border-white/10;
+  @apply hover:bg-white/5 cursor-pointer;
+  @apply transition-colors duration-200;
+  opacity: 1; /* Important pour GSAP */
+}
+
+.table-cell {
+  @apply px-4 py-4 text-sm;
+}
+
+.tender-title {
+  @apply font-medium text-white mb-1;
+}
+
+.tender-description {
+  @apply text-white/60 text-xs line-clamp-2;
+}
+
+.tender-deadline {
+  @apply text-white font-mono;
+}
+
+.tender-pub-date {
+  @apply text-white/50 text-xs mt-1;
+}
+
+/* Status Badge */
+.status-badge {
+  @apply inline-block px-3 py-1 text-xs uppercase tracking-wider font-medium;
+  @apply border;
+}
+
+.status-draft {
+  @apply bg-white/5 border-white/30 text-white/70;
+}
+
+.status-published {
+  @apply bg-brutal-neon/10 border-brutal-neon/50 text-brutal-neon;
+}
+
+.status-closed {
+  @apply bg-white/10 border-white/50 text-white;
+}
+
+.status-cancelled {
+  @apply bg-brutal-accent/10 border-brutal-accent/50 text-brutal-accent;
+}
+
+/* Criteria */
+.criteria-list {
+  @apply space-y-1;
+}
+
+.criterion-item {
+  @apply flex items-center gap-2 text-xs;
+}
+
+.criterion-type {
+  @apply text-white/70;
+}
+
+.criterion-weight {
+  @apply text-white font-mono;
+}
+
+/* Action Buttons */
+.action-buttons {
+  @apply flex items-center justify-end gap-2;
+}
+
+.btn-action {
+  @apply p-2 border transition-all duration-200;
+}
+
+.btn-icon-sm {
+  @apply w-4 h-4;
+}
+
+.btn-publish {
+  @apply border-brutal-neon/50 text-brutal-neon;
+  @apply hover:bg-brutal-neon hover:text-brutal-black;
+}
+
+.btn-close {
+  @apply border-white/30 text-white/70;
+  @apply hover:bg-white hover:text-brutal-black;
+}
+
+.btn-delete {
+  @apply border-brutal-accent/50 text-brutal-accent;
+  @apply hover:bg-brutal-accent hover:text-brutal-black;
+}
+
+/* Form */
+.tender-form {
+  @apply space-y-6;
+}
+
+.form-group {
+  @apply relative;
+}
+
+.form-label {
+  @apply block text-xs text-white/70 mb-2 uppercase tracking-widest;
+}
+
+.form-input,
+.form-textarea {
+  @apply w-full bg-transparent text-white;
+  @apply border-0 border-b border-white/20;
+  @apply px-0 py-3;
+  @apply text-base;
+  @apply transition-all duration-300;
+  @apply focus:outline-none focus:border-white;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  @apply text-white/30;
+}
+
+.form-input.error,
+.form-textarea.error {
+  @apply border-brutal-accent;
+}
+
+.form-textarea {
+  @apply resize-none;
+}
+
+.field-error {
+  @apply block text-xs text-brutal-accent mt-1;
+}
+
+.form-row {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+}
+
+/* Info Box */
+.info-box {
+  @apply flex items-start gap-3 p-4;
+  @apply bg-brutal-neon/5 border border-brutal-neon/20;
+}
+
+.info-icon {
+  @apply w-5 h-5 text-brutal-neon flex-shrink-0 mt-0.5;
+}
+
+.info-title {
+  @apply text-sm font-medium text-white mb-1;
+}
+
+.info-text {
+  @apply text-xs text-white/70;
+}
+
+/* Form Actions */
+.form-actions {
+  @apply flex flex-col md:flex-row gap-4 pt-6 border-t border-white/10;
+}
+
+.btn-cancel {
+  @apply px-6 py-3 border border-white/30 text-white/70;
+  @apply hover:border-white hover:text-white;
+  @apply transition-all duration-300;
+  @apply text-sm uppercase tracking-wider font-medium;
+}
+
+.btn-submit {
+  @apply px-6 py-3 bg-white text-brutal-black;
+  @apply hover:bg-white/90;
+  @apply transition-all duration-300;
+  @apply text-sm uppercase tracking-wider font-medium;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply flex items-center justify-center gap-2;
+}
+
+.btn-submit:disabled:hover {
+  @apply bg-white;
+}
+
+.loading-spinner-sm {
+  @apply w-4 h-4 border-2 border-brutal-black/30 border-t-brutal-black rounded-full;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .table-header,
+  .table-cell {
+    @apply px-2 py-2;
+  }
+
+  .tender-title {
+    @apply text-sm;
+  }
+
+  .tender-description {
+    @apply hidden;
+  }
+
+  .criteria-list {
+    @apply hidden;
+  }
+}

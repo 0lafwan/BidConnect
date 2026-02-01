@@ -5,10 +5,11 @@ import { filter } from 'rxjs/operators';
 import { SmoothScrollService } from './core/services/smooth-scroll.service';
 import { AnimationService } from './core/services/animation.service';
 import { HeaderComponent } from './layout/header/header';
+import { AiChatComponent } from './features/ai-chat/ai-chat.component';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, HeaderComponent],
+  imports: [CommonModule, RouterOutlet, HeaderComponent, AiChatComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
