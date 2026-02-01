@@ -1,9 +1,11 @@
 import { Component, OnInit, OnDestroy, signal, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { fromEvent, Subscription } from 'rxjs';
 import { throttleTime } from 'rxjs/operators';
 import gsap from 'gsap';
+import { AuthService } from '../../core/services/auth.service';
+import { SmoothScrollService } from '../../core/services/smooth-scroll.service';
 
 @Component({
   selector: 'app-header',
@@ -14,6 +16,9 @@ import gsap from 'gsap';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
+  private authService = inject(AuthService);
+  private smoothScrollService = inject(SmoothScrollService);
+  private router = inject(Router);
   private isBrowser: boolean;
   private scrollSubscription?: Subscription;
 
@@ -21,15 +26,81 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isScrolled = signal(false);
   isMobileMenuOpen = signal(false);
 
+  // État d'authentification
+  isAuthenticated = this.authService.isAuthenticated;
+  currentUser = this.authService.currentUser;
+
   // Navigation items
   navItems = [
-    { label: 'SERVICES', path: '/services' },
-    { label: 'PROJETS', path: '/projects' },
-    { label: 'À PROPOS', path: '/about' }
+    { label: 'SERVICES', path: '/services', anchor: 'services' },
+    { label: 'PROJETS', path: '/projects', anchor: 'projects' },
+    { label: 'À PROPOS', path: '/about', anchor: 'about' }
   ];
 
   constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  /**
+   * Obtenir le lien du logo selon l'état d'authentification
+   */
+  getLogoLink(): string {
+    if (!this.isAuthenticated()) {
+      return '/';
+    }
+
+    const role = this.currentUser()?.role;
+    if (role) {
+      return `/${role.toLowerCase()}`;
+    }
+
+    return '/';
+  }
+
+  /**
+   * Gérer le clic sur un lien de navigation (scroll vers ancre)
+   */
+  onNavClick(event: Event, item: { label: string; path: string; anchor: string }): void {
+    event.preventDefault();
+
+    // Si on est déjà sur la landing page, scroller vers l'ancre
+    if (this.router.url === '/' || this.router.url.startsWith('/#')) {
+      this.scrollToSection(item.anchor);
+      this.closeMobileMenu();
+    } else {
+      // Sinon, naviguer vers la landing page puis scroller
+      this.router.navigate(['/']).then(() => {
+        setTimeout(() => {
+          this.scrollToSection(item.anchor);
+          this.closeMobileMenu();
+        }, 100);
+      });
+    }
+  }
+
+  /**
+   * Scroller vers une section avec smooth scroll
+   */
+  private scrollToSection(sectionId: string): void {
+    if (!this.isBrowser) return;
+
+    const element = document.getElementById(sectionId);
+    if (element) {
+      this.smoothScrollService.scrollTo(`#${sectionId}`, {
+        offset: -100, // Offset pour le header fixe
+        duration: 1.5,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+      });
+    } else {
+      console.warn(`Section #${sectionId} not found`);
+    }
+  }
+
+  /**
+   * Déconnexion
+   */
+  logout(): void {
+    this.authService.logout();
   }
 
   ngOnInit(): void {

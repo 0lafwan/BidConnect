@@ -1,5 +1,7 @@
-<!-- Global Header -->
-<app-header></app-header>
+<!-- Global Header (masqué sur les dashboards) -->
+@if (showGlobalHeader()) {
+  <app-header></app-header>
+}
 
 <!-- Main Content -->
 <router-outlet></router-outlet>
