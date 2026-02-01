@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -44,7 +43,7 @@ public class TenderRequestDTO {
     @NotEmpty(message = "Criteria cannot be empty")
     private List<EvaluationCriterionRequestDTO> criteria;
 
-    //@Schema(description = "Document metadata list (NOT the actual files)")
-    //@NotEmpty(message = "Documents list cannot be empty")
-    //private List<TenderDocumentRefRequestDTO> documents;
+    // @Schema(description = "Document metadata list (NOT the actual files)")
+    // @NotEmpty(message = "Documents list cannot be empty")
+    // private List<TenderDocumentRefRequestDTO> documents;
 }
