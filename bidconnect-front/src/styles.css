@@ -1,0 +1,281 @@
+/* ============================================
+   BIDCONNECT - BRUTALISME MODERNE
+   Global Styles & Tailwind Configuration
+   ============================================ */
+
+/* Google Fonts Import - MUST BE FIRST */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Tailwind Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   BASE LAYER - Reset & Global Styles
+   ============================================ */
+@layer base {
+  * {
+    @apply border-brutal-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-brutal-black text-brutal-white font-inter antialiased;
+    @apply text-brutal-base leading-relaxed;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-grotesk font-bold tracking-tight;
+  }
+
+  h1 {
+    @apply text-brutal-6xl md:text-brutal-7xl;
+  }
+
+  h2 {
+    @apply text-brutal-4xl md:text-brutal-5xl;
+  }
+
+  h3 {
+    @apply text-brutal-3xl md:text-brutal-4xl;
+  }
+
+  h4 {
+    @apply text-brutal-2xl md:text-brutal-3xl;
+  }
+
+  h5 {
+    @apply text-brutal-xl md:text-brutal-2xl;
+  }
+
+  h6 {
+    @apply text-brutal-lg md:text-brutal-xl;
+  }
+
+  p {
+    @apply text-brutal-base leading-relaxed;
+  }
+
+  a {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-brutal-accent text-brutal-white;
+  }
+
+  ::-moz-selection {
+    @apply bg-brutal-accent text-brutal-white;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-brutal-dark;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-brutal-border hover:bg-brutal-accent transition-colors duration-300;
+  }
+}
+
+/* ============================================
+   COMPONENTS LAYER - Reusable Components
+   ============================================ */
+@layer components {
+  /* Brutal Button */
+  .btn-brutal {
+    @apply px-6 py-3 font-grotesk font-bold uppercase tracking-wider;
+    @apply border-brutal border-brutal-white bg-transparent text-brutal-white;
+    @apply transition-all duration-300 ease-in-out;
+    @apply hover:bg-brutal-white hover:text-brutal-black;
+    @apply active:translate-x-1 active:translate-y-1;
+    @apply shadow-brutal hover:shadow-none;
+  }
+
+  .btn-brutal-accent {
+    @apply btn-brutal border-brutal-accent text-brutal-accent;
+    @apply hover:bg-brutal-accent hover:text-brutal-white;
+    @apply shadow-brutal-accent;
+  }
+
+  .btn-brutal-neon {
+    @apply btn-brutal border-brutal-neon text-brutal-neon;
+    @apply hover:bg-brutal-neon hover:text-brutal-black;
+    @apply shadow-brutal-neon;
+  }
+
+  /* Brutal Card */
+  .card-brutal {
+    @apply bg-brutal-dark border-brutal border-brutal-white p-brutal-lg;
+    @apply shadow-brutal hover:shadow-brutal-lg;
+    @apply transition-all duration-300 ease-in-out;
+    @apply hover:translate-x-1 hover:translate-y-1;
+  }
+
+  .card-brutal-accent {
+    @apply card-brutal border-brutal-accent;
+  }
+
+  /* Brutal Input */
+  .input-brutal {
+    @apply w-full px-4 py-3 bg-brutal-dark border-brutal border-brutal-white;
+    @apply text-brutal-white font-inter placeholder:text-brutal-border;
+    @apply focus:outline-none focus:border-brutal-accent focus:shadow-brutal-accent;
+    @apply transition-all duration-300;
+  }
+
+  /* Brutal Container */
+  .container-brutal {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Brutal Section */
+  .section-brutal {
+    @apply py-brutal-2xl md:py-brutal-3xl;
+  }
+
+  /* Brutal Grid */
+  .grid-brutal {
+    @apply grid gap-brutal-lg;
+  }
+
+  /* Brutal Divider */
+  .divider-brutal {
+    @apply h-px bg-brutal-border my-brutal-lg;
+  }
+
+  /* Brutal Badge */
+  .badge-brutal {
+    @apply inline-block px-3 py-1 text-brutal-xs font-grotesk font-bold uppercase;
+    @apply border-brutal border-brutal-white bg-transparent;
+  }
+
+  .badge-brutal-accent {
+    @apply badge-brutal border-brutal-accent text-brutal-accent;
+  }
+
+  /* Brutal Link */
+  .link-brutal {
+    @apply relative inline-block font-grotesk font-bold uppercase tracking-wider;
+    @apply after:content-[''] after:absolute after:bottom-0 after:left-0;
+    @apply after:w-0 after:h-0.5 after:bg-brutal-accent;
+    @apply after:transition-all after:duration-300;
+    @apply hover:after:w-full;
+  }
+}
+
+/* ============================================
+   UTILITIES LAYER - Custom Utilities
+   ============================================ */
+@layer utilities {
+  /* Text Utilities */
+  .text-brutal-gradient {
+    @apply bg-gradient-to-r from-brutal-white to-brutal-accent bg-clip-text text-transparent;
+  }
+
+  .text-brutal-neon-gradient {
+    @apply bg-gradient-to-r from-brutal-neon to-brutal-accent bg-clip-text text-transparent;
+  }
+
+  /* Background Utilities */
+  .bg-brutal-gradient {
+    @apply bg-gradient-to-br from-brutal-black via-brutal-dark to-brutal-gray;
+  }
+
+  .bg-brutal-grid {
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* Border Utilities */
+  .border-brutal-glow {
+    @apply border-brutal border-brutal-accent;
+    box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+  }
+
+  .border-brutal-neon-glow {
+    @apply border-brutal border-brutal-neon;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  }
+
+  /* Animation Utilities */
+  .animate-brutal-float {
+    animation: brutal-float 3s ease-in-out infinite;
+  }
+
+  @keyframes brutal-float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Glassmorphism Brutal */
+  .glass-brutal {
+    @apply bg-brutal-dark/50 backdrop-blur-md border-brutal border-brutal-white/20;
+  }
+}
+
+/* ============================================
+   LENIS SMOOTH SCROLL OVERRIDES
+   ============================================ */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+.sr-only {
+  @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+  clip: rect(0, 0, 0, 0);
+}
+
+/* Focus Visible */
+*:focus-visible {
+  @apply outline-2 outline-brutal-accent outline-offset-2;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

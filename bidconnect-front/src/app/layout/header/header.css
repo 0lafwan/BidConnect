@@ -1,0 +1,213 @@
+/* ============================================
+   HEADER - BRUTALISME MODERNE
+   ============================================ */
+
+/* Header Principal */
+.header-main {
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease-in-out;
+}
+
+/* État Scrolled */
+.header-main.header-scrolled {
+  background: rgba(5, 5, 5, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Logo avec mix-blend-mode */
+.header-logo {
+  mix-blend-mode: difference;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+.header-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Navigation Links */
+.nav-link {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+
+/* Underline animé (part du centre) */
+.nav-link-underline {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: currentColor;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.nav-link:hover .nav-link-underline,
+.nav-link-active .nav-link-underline {
+  width: 100%;
+}
+
+.nav-link-active {
+  color: #FFFFFF;
+}
+
+/* Bouton Header */
+.btn-header {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.btn-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: #FFFFFF;
+  transition: width 0.3s ease;
+  z-index: -1;
+}
+
+.btn-header:hover::before {
+  width: 100%;
+}
+
+.btn-header:hover {
+  color: #050505;
+}
+
+/* Burger Menu */
+.burger-menu {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.burger-menu:hover {
+  transform: scale(1.1);
+}
+
+.burger-line {
+  transition: all 0.3s ease;
+}
+
+/* Animation du burger en X */
+.burger-menu.burger-open .burger-line:first-child {
+  transform: rotate(45deg) translateY(10px);
+}
+
+.burger-menu.burger-open .burger-line:last-child {
+  transform: rotate(-45deg) translateY(-10px);
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu {
+  transition: opacity 0.3s ease;
+}
+
+.mobile-menu-link {
+  position: relative;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.mobile-menu-link:hover {
+  transform: translateX(10px);
+}
+
+/* Animation d'apparition des liens */
+.mobile-menu-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: #FF3333;
+  transition: width 0.3s ease;
+}
+
+.mobile-menu-link:hover::after {
+  width: 100%;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .header-logo {
+    font-size: 1.5rem;
+  }
+
+  .mobile-menu-link {
+    font-size: 2.5rem;
+  }
+}
+
+/* Performance Optimizations */
+.header-main,
+.header-logo,
+.nav-link,
+.burger-menu,
+.mobile-menu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Smooth Transitions */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .header-main,
+  .nav-link-underline,
+  .burger-line,
+  .mobile-menu,
+  .mobile-menu-link {
+    transition: none !important;
+  }
+}
+
+/* Focus Visible */
+.nav-link:focus-visible,
+.btn-header:focus-visible,
+.burger-menu:focus-visible {
+  outline: 2px solid #FF3333;
+  outline-offset: 4px;
+}
+
+/* Hover Effects Enhancement */
+.nav-link {
+  letter-spacing: 0.1em;
+}
+
+.nav-link:hover {
+  letter-spacing: 0.15em;
+  transition: letter-spacing 0.3s ease;
+}
+
+/* Logo Glow Effect (Optional) */
+.header-scrolled .header-logo {
+  text-shadow: 0 0 20px rgba(255, 51, 51, 0.3);
+}
+
+/* Mobile Menu Background Pattern */
+.mobile-menu::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  opacity: 0.5;
+  pointer-events: none;
+}
