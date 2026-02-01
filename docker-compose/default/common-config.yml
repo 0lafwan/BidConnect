@@ -3,6 +3,8 @@ services:
     networks:
       - bindconnect
 
+
+
   microservice-base-config:
     extends:
       service: network-deploy-service
@@ -11,11 +13,24 @@ services:
         limits:
           memory: 700m
     environment:
-      SPRING_RABBITMQ_HOST: "rabbit"
+      SPRING_RABBITMQ_HOST: "rabbit"  # for autoconfiguration we used rabbitmq with spring cloud Bus
+      #JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.11.0.jar"
+      #OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      #OTEL_METRICS_EXPORTER: none
+      #OTEL_LOGS_EXPORTER: none
 
   microservice-configserver-config:
     extends:
       service: microservice-base-config
     environment:
       SPRING_PROFILES_ACTIVE: default
-      #SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/  # just because we didn't setup config server for document-service yet
+      #SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/  # just because we didn't setup config server for document-service and others...  yet
+
+
+  microservice-eureka-config:
+    extends:
+      service: microservice-configserver-config
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
+
+      # WE ARE IN God's HANDS
