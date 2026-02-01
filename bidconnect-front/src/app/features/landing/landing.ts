@@ -98,6 +98,9 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
   private initHeroAnimations(): void {
     const heroImage = document.querySelector('.hero-image');
     const heroContent = document.querySelector('.hero-content');
+    const heroTitle = document.querySelector('.hero-title');
+    const heroSubtitle = document.querySelector('.hero-subtitle');
+    const heroCta = document.querySelector('.hero-cta');
 
     if (!heroImage || !heroContent) return;
 
@@ -111,6 +114,7 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     // Parallax Effect - Texte descend plus vite que l'image
+    // IMPORTANT: On exclut les éléments avec animation d'entrée
     gsap.to(heroContent, {
       y: 300,
       opacity: 0.3,
@@ -123,30 +127,60 @@ export class LandingComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Fade in initial
-    gsap.from('.hero-title', {
-      y: 100,
-      opacity: 0,
-      duration: 1.2,
-      delay: 0.3,
-      ease: 'power3.out'
-    });
+    // Fade in initial - Utilisation de fromTo pour plus de contrôle
+    if (heroTitle) {
+      gsap.fromTo(heroTitle, 
+        {
+          y: 100,
+          opacity: 0,
+          scale: 0.9
+        },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 1.2,
+          delay: 0.3,
+          ease: 'power3.out',
+          overwrite: 'auto', // Empêche les conflits d'animation
+          clearProps: 'transform' // Nettoie les transforms après l'animation
+        }
+      );
+    }
 
-    gsap.from('.hero-subtitle', {
-      y: 80,
-      opacity: 0,
-      duration: 1,
-      delay: 0.6,
-      ease: 'power3.out'
-    });
+    if (heroSubtitle) {
+      gsap.fromTo(heroSubtitle,
+        {
+          y: 80,
+          opacity: 0
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          delay: 0.6,
+          ease: 'power3.out',
+          overwrite: 'auto'
+        }
+      );
+    }
 
-    gsap.from('.hero-cta', {
-      y: 60,
-      opacity: 0,
-      duration: 0.8,
-      delay: 0.9,
-      ease: 'power3.out'
-    });
+    if (heroCta) {
+      gsap.fromTo(heroCta,
+        {
+          y: 60,
+          opacity: 0
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          delay: 0.9,
+          ease: 'power3.out',
+          overwrite: 'auto'
+        }
+      );
+    }
   }
 
   /**

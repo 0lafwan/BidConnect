@@ -63,6 +63,18 @@
 .hero-title {
   letter-spacing: -0.02em;
   line-height: 0.9;
+  /* IMPORTANT: Pas de transition CSS pour éviter les conflits avec GSAP */
+  transition: none !important;
+}
+
+.hero-subtitle {
+  /* IMPORTANT: Pas de transition CSS pour éviter les conflits avec GSAP */
+  transition: none !important;
+}
+
+.hero-cta {
+  /* IMPORTANT: Pas de transition CSS pour éviter les conflits avec GSAP */
+  transition: none !important;
 }
 
 /* Services Section */
