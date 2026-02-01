@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { delay, catchError } from 'rxjs/operators';
+import { delay, catchError, map } from 'rxjs/operators';
 import {
   TenderResponse,
   TenderRequest,
@@ -18,9 +18,9 @@ export class TenderService {
   private http = inject(HttpClient);
 
   // Configuration
-  private readonly GATEWAY_URL = 'http://localhost:8072';
+  private readonly GATEWAY_URL = ''; // Empty for proxy to handle
   private readonly BASE_PATH = '/bindconnect/tender-service/api/v1/tenders';
-  private readonly MOCK_MODE = true; // Mettre à false pour utiliser le vrai backend
+  private readonly MOCK_MODE = false; // Mettre à false pour utiliser le vrai backend
 
   /**
    * Créer un nouvel appel d'offres
@@ -30,12 +30,11 @@ export class TenderService {
       return this.mockCreateTender(payload);
     }
 
-    /* CODE RÉEL (à décommenter quand le backend est prêt)
     const formData = new FormData();
-    
+
     // Ajouter les données JSON
     formData.append('data', JSON.stringify(payload.data));
-    
+
     // Ajouter les fichiers si présents
     if (payload.files && payload.files.length > 0) {
       payload.files.forEach(file => {
@@ -43,15 +42,16 @@ export class TenderService {
       });
     }
 
+    // DEBUG: Log payload
+    console.log('Sending Create Tender Payload:', JSON.stringify(payload.data));
+    if (payload.files) console.log('Files count:', payload.files.length);
+
     return this.http.post<TenderResponse>(
       `${this.GATEWAY_URL}${this.BASE_PATH}`,
       formData
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockCreateTender(payload);
   }
 
   /**
@@ -62,16 +62,12 @@ export class TenderService {
       return this.mockUpdateTender(id, data);
     }
 
-    /* CODE RÉEL
     return this.http.put<TenderResponse>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/${id}`,
       data
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockUpdateTender(id, data);
   }
 
   /**
@@ -82,15 +78,11 @@ export class TenderService {
       return this.mockDeleteTender(id);
     }
 
-    /* CODE RÉEL
-    return this.http.delete<string>(
-      `${this.GATEWAY_URL}${this.BASE_PATH}/${id}`
-    ).pipe(
+    return this.http.delete(`${this.GATEWAY_URL}${this.BASE_PATH}/${id}`, {
+      responseType: 'text'
+    }).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockDeleteTender(id);
   }
 
   /**
@@ -101,15 +93,11 @@ export class TenderService {
       return this.mockGetTenderById(id);
     }
 
-    /* CODE RÉEL
     return this.http.get<TenderResponse>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/${id}`
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockGetTenderById(id);
   }
 
   /**
@@ -120,15 +108,11 @@ export class TenderService {
       return this.mockGetAllTenders();
     }
 
-    /* CODE RÉEL
     return this.http.get<TenderResponse[]>(
       `${this.GATEWAY_URL}${this.BASE_PATH}`
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockGetAllTenders();
   }
 
   /**
@@ -139,15 +123,11 @@ export class TenderService {
       return this.mockGetTendersByOrganization(orgId);
     }
 
-    /* CODE RÉEL
     return this.http.get<TenderResponse[]>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/organization/${orgId}`
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockGetTendersByOrganization(orgId);
   }
 
   /**
@@ -158,15 +138,10 @@ export class TenderService {
       return this.mockGetTendersByOwner(ownerId);
     }
 
-    /* CODE RÉEL
-    return this.http.get<TenderResponse[]>(
-      `${this.GATEWAY_URL}${this.BASE_PATH}/owner/${ownerId}`
-    ).pipe(
-      catchError(this.handleError)
+    // WORKAROUND: Client-side filtering because backend endpoint fails without user-service
+    return this.getAllTenders().pipe(
+      map(tenders => tenders ? tenders.filter(t => t.ownerUserId === ownerId) : [])
     );
-    */
-
-    return this.mockGetTendersByOwner(ownerId);
   }
 
   /**
@@ -177,16 +152,12 @@ export class TenderService {
       return this.mockPublishTender(id);
     }
 
-    /* CODE RÉEL
     return this.http.patch<TenderResponse>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/${id}/publish`,
       {}
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockPublishTender(id);
   }
 
   /**
@@ -197,16 +168,12 @@ export class TenderService {
       return this.mockCloseTender(id);
     }
 
-    /* CODE RÉEL
     return this.http.patch<TenderResponse>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/${id}/close`,
       {}
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockCloseTender(id);
   }
 
   /**
@@ -217,15 +184,11 @@ export class TenderService {
       return this.mockGetTenderCriteria(id);
     }
 
-    /* CODE RÉEL
     return this.http.get<EvaluationCriterionResponse[]>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/${id}/criteria`
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockGetTenderCriteria(id);
   }
 
   // ============================================================
@@ -296,8 +259,8 @@ export class TenderService {
       deadline: '2026-03-31',
       criteria: [
         { id: 1, type: EvaluationCriterionType.PRICE, weight: 40 },
-        { id: 2, type: EvaluationCriterionType.TECHNICAL, weight: 35 },
-        { id: 3, type: EvaluationCriterionType.DEADLINE, weight: 25 }
+        { id: 2, type: EvaluationCriterionType.TECHNICAL_QUALITY, weight: 35 },
+        { id: 3, type: EvaluationCriterionType.DELIVERY_TIME, weight: 25 }
       ],
       documents: [
         {
@@ -326,8 +289,8 @@ export class TenderService {
         deadline: '2026-03-31',
         criteria: [
           { id: 1, type: EvaluationCriterionType.PRICE, weight: 40 },
-          { id: 2, type: EvaluationCriterionType.TECHNICAL, weight: 35 },
-          { id: 3, type: EvaluationCriterionType.DEADLINE, weight: 25 }
+          { id: 2, type: EvaluationCriterionType.TECHNICAL_QUALITY, weight: 35 },
+          { id: 3, type: EvaluationCriterionType.DELIVERY_TIME, weight: 25 }
         ],
         documents: []
       },
@@ -342,8 +305,8 @@ export class TenderService {
         deadline: '2026-04-15',
         criteria: [
           { id: 4, type: EvaluationCriterionType.PRICE, weight: 30 },
-          { id: 5, type: EvaluationCriterionType.TECHNICAL, weight: 40 },
-          { id: 6, type: EvaluationCriterionType.QUALITY, weight: 30 }
+          { id: 5, type: EvaluationCriterionType.TECHNICAL_QUALITY, weight: 40 },
+          { id: 6, type: EvaluationCriterionType.TECHNICAL_QUALITY, weight: 30 }
         ],
         documents: []
       },
@@ -357,9 +320,9 @@ export class TenderService {
         publicationDate: null,
         deadline: '2026-05-01',
         criteria: [
-          { id: 7, type: EvaluationCriterionType.TECHNICAL, weight: 50 },
+          { id: 7, type: EvaluationCriterionType.TECHNICAL_QUALITY, weight: 50 },
           { id: 8, type: EvaluationCriterionType.PRICE, weight: 30 },
-          { id: 9, type: EvaluationCriterionType.EXPERIENCE, weight: 20 }
+          { id: 9, type: EvaluationCriterionType.DELIVERY_TIME, weight: 20 }
         ],
         documents: []
       }
@@ -399,8 +362,8 @@ export class TenderService {
   private mockGetTenderCriteria(id: number): Observable<EvaluationCriterionResponse[]> {
     const mockCriteria: EvaluationCriterionResponse[] = [
       { id: 1, type: EvaluationCriterionType.PRICE, weight: 40 },
-      { id: 2, type: EvaluationCriterionType.TECHNICAL, weight: 35 },
-      { id: 3, type: EvaluationCriterionType.DEADLINE, weight: 25 }
+      { id: 2, type: EvaluationCriterionType.TECHNICAL_QUALITY, weight: 35 },
+      { id: 3, type: EvaluationCriterionType.DELIVERY_TIME, weight: 25 }
     ];
 
     return of(mockCriteria).pipe(delay(800));
@@ -412,7 +375,7 @@ export class TenderService {
 
   private handleError(error: any): Observable<never> {
     console.error('TenderService Error:', error);
-    
+
     let errorMessage = 'Une erreur est survenue';
 
     if (error.error instanceof ErrorEvent) {
@@ -426,7 +389,9 @@ export class TenderService {
           errorMessage = 'Appel d\'offres non trouvé';
           break;
         case 500:
-          errorMessage = 'Erreur serveur';
+          // Backend uses 'errorMessage' field in ErrorResponseDto
+          const backendMsg = error.error?.errorMessage || error.error?.message;
+          errorMessage = backendMsg ? `Erreur serveur: ${backendMsg}` : 'Erreur serveur (détails manquants)';
           break;
         default:
           errorMessage = `Erreur ${error.status}: ${error.message}`;

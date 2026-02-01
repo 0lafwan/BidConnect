@@ -144,7 +144,10 @@
   @apply hover:border-white/40 hover:shadow-lg;
   @apply transition-all duration-300;
   @apply flex flex-col;
-  opacity: 1; /* Important pour GSAP */
+  opacity: 1;
+  pointer-events: auto;
+  will-change: transform, opacity;
+  /* Important pour GSAP */
 }
 
 .card-header {
@@ -231,15 +234,15 @@
 /* Modal Overlay */
 .modal-overlay {
   @apply fixed inset-0 bg-brutal-black/90 backdrop-blur-sm;
-  @apply flex items-center justify-center p-4;
-  @apply z-50;
+  @apply flex justify-center p-4 md:p-8;
+  @apply z-50 overflow-y-auto;
   opacity: 1;
 }
 
 /* Modal Content */
 .modal-content {
   @apply bg-brutal-black border border-white/20 p-6 md:p-8;
-  @apply w-full max-w-2xl max-h-[90vh] overflow-y-auto;
+  @apply w-full max-w-2xl h-fit mb-auto mt-auto md:mt-12;
   opacity: 1;
 }
 
@@ -314,6 +317,33 @@
   @apply resize-none;
 }
 
+/* File Input Custom Styling */
+.file-input-wrapper {
+  @apply relative mt-2;
+}
+
+.file-input {
+  @apply hidden;
+}
+
+.file-custom-input {
+  @apply w-full flex items-center gap-4 p-6 border-2 border-dashed border-white/20;
+  @apply transition-all duration-300 cursor-pointer;
+  @apply bg-white/5;
+}
+
+.file-custom-input:hover {
+  @apply border-white/40 bg-white/10;
+}
+
+.file-icon {
+  @apply w-8 h-8 text-white/50;
+}
+
+.file-text {
+  @apply text-sm text-white/70 overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
 .field-error {
   @apply block text-xs text-brutal-accent mt-1;
 }
@@ -383,4 +413,240 @@
 
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Animations Personalisées */
+.animate-toast-in {
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.font-space {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* File Drop Zone Enhancements */
+.file-drop-zone {
+  @apply w-full border-2 border-dashed border-white/10 p-8 flex flex-col items-center justify-center transition-all cursor-pointer bg-white/5;
+}
+
+.file-drop-zone:hover {
+  @apply border-white/30 bg-white/[0.08];
+}
+
+.file-drop-zone.has-file {
+  @apply border-brutal-neon bg-brutal-neon/5;
+}
+
+/* Common Brutal Colors */
+.text-brutal-neon {
+  color: #00ffaa;
+}
+
+.bg-brutal-neon {
+  background-color: #00ffaa;
+}
+
+.border-brutal-neon {
+  border-color: #00ffaa;
+}
+
+.text-brutal-accent {
+  color: #ff3e3e;
+}
+
+.bg-brutal-accent {
+  background-color: #ff3e3e;
+}
+
+.border-brutal-accent {
+  border-color: #ff3e3e;
+}
+
+.bg-brutal-black {
+  background-color: #000000;
+}
+
+/* Navigation Tabs */
+.tabs-container {
+  @apply flex gap-4 mb-8 border-b border-white/10;
+}
+
+.tab-button {
+  @apply px-6 py-4 text-xs font-bold uppercase tracking-widest text-white/40;
+  @apply border-b-2 border-transparent transition-all duration-300;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.tab-button:hover {
+  @apply text-white/70;
+}
+
+.tab-button.active {
+  @apply text-brutal-neon border-brutal-neon;
+}
+
+/* Submissions List */
+.submissions-list {
+  @apply flex flex-col gap-4;
+}
+
+.submission-item {
+  @apply bg-white/5 border border-white/10 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6;
+  @apply hover:border-white/30 hover:bg-white/[0.07] transition-all duration-300 cursor-pointer;
+}
+
+.sub-main-info {
+  @apply flex flex-col gap-1;
+}
+
+.sub-id {
+  @apply text-[10px] uppercase tracking-widest text-white/30 font-mono;
+}
+
+.sub-tender-id {
+  @apply text-base font-bold uppercase tracking-tight;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.sub-stats {
+  @apply flex gap-8;
+}
+
+.sub-stat {
+  @apply flex flex-col gap-1;
+}
+
+.sub-stat .stat-label {
+  @apply text-[10px] text-white/40 mb-0;
+}
+
+.sub-stat .stat-val {
+  @apply text-base;
+}
+
+.sub-status {
+  @apply flex items-center gap-4;
+}
+
+/* Status Badges */
+.status-badge {
+  @apply px-3 py-1 text-[10px] font-bold uppercase tracking-widest border;
+}
+
+.status-submitted {
+  @apply bg-blue-500/10 border-blue-500/50 text-blue-400;
+}
+
+.status-accepted {
+  @apply bg-brutal-neon/10 border-brutal-neon text-brutal-neon;
+}
+
+.status-rejected {
+  @apply bg-brutal-accent/10 border-brutal-accent text-brutal-accent;
+}
+
+.status-in_evaluation {
+  @apply bg-yellow-500/10 border-yellow-500/50 text-yellow-500;
+}
+
+/* Details View */
+.details-view {
+  @apply space-y-8;
+}
+
+.btn-back {
+  @apply flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white transition-colors mb-6;
+}
+
+.details-grid {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-8;
+}
+
+.details-card {
+  @apply lg:col-span-2 bg-white/5 border border-white/10 relative overflow-hidden;
+}
+
+.details-card-secondary {
+  @apply bg-white/5 border border-white/10;
+}
+
+.card-inner {
+  @apply p-8;
+}
+
+.status-badge-lg {
+  @apply px-4 py-2 text-xs font-bold uppercase tracking-widest border;
+}
+
+.detail-label {
+  @apply block text-xs uppercase tracking-widest text-white/40 mb-2;
+}
+
+.detail-value {
+  @apply block font-space;
+}
+
+.metric-row {
+  @apply flex items-center gap-4;
+}
+
+.metric-label {
+  @apply w-32 text-[10px] uppercase tracking-widest text-white/50;
+}
+
+.metric-bar-bg {
+  @apply flex-1 h-2 bg-white/5 rounded-full overflow-hidden;
+}
+
+.metric-bar-fill {
+  @apply h-full transition-all duration-1000;
+}
+
+.metric-value {
+  @apply w-12 text-right text-xs font-mono;
+}
+
+.analysis-box {
+  @apply p-6 bg-brutal-neon/5 border border-brutal-neon/20 mt-8;
+}
+
+.analysis-title {
+  @apply text-xs font-bold text-brutal-neon uppercase tracking-widest mb-4 flex items-center gap-2;
+}
+
+.analysis-title::before {
+  content: '';
+  @apply w-1.5 h-1.5 bg-brutal-neon;
+}
+
+.analysis-text {
+  @apply text-white/80 text-sm leading-relaxed italic;
+}
+
+.tender-meta-item {
+  @apply pb-4 border-b border-white/5;
+}
+
+.meta-label {
+  @apply block text-[10px] uppercase tracking-widest text-white/30 mb-1;
+}
+
+.meta-value {
+  @apply block text-sm font-medium;
+}
+
+.btn-danger {
+  @apply px-6 py-4 border-2 border-brutal-accent text-brutal-accent font-bold uppercase tracking-widest text-xs transition-all hover:bg-brutal-accent hover:text-white;
 }

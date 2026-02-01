@@ -4,10 +4,12 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { TenderService } from '../../../core/services/tender.service';
+import { SubmissionService } from '../../../core/services/submission.service';
 import { TenderResponse, TenderStatus, TenderCreatePayload, EvaluationCriterionType } from '../../../core/models/tender.model';
+import { SubmissionResponse } from '../../../core/models/submission.model';
 import gsap from 'gsap';
 
-type ViewState = 'LIST' | 'CREATE';
+type ViewState = 'LIST' | 'CREATE' | 'DETAILS';
 
 @Component({
   selector: 'app-owner-dashboard',
@@ -23,6 +25,7 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
   private platformId = inject(PLATFORM_ID);
   private authService = inject(AuthService);
   private tenderService = inject(TenderService);
+  private submissionService = inject(SubmissionService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private isBrowser: boolean;
@@ -33,6 +36,18 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
   isLoading = signal(false);
   tenders = signal<TenderResponse[]>([]);
   errorMessage = signal<string | null>(null);
+  selectedTender = signal<TenderResponse | null>(null);
+  submissions = signal<SubmissionResponse[]>([]);
+  selectedFiles = signal<File[]>([]);
+
+  // Notifications & Modals
+  showConfirmModal = signal(false);
+  confirmData = signal<{ title: string; message: string; action: () => void } | null>(null);
+  toast = signal<{ show: boolean; message: string; type: 'success' | 'error' }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
 
   // Formulaire
   tenderForm!: FormGroup;
@@ -67,8 +82,24 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
       title: ['', [Validators.required, Validators.minLength(5)]],
       description: ['', [Validators.required, Validators.minLength(20)]],
       deadline: ['', Validators.required],
-      budget: ['', [Validators.required, Validators.min(0)]]
-    });
+      priceWeight: [40, [Validators.required, Validators.min(1), Validators.max(100)]],
+      technicalWeight: [35, [Validators.required, Validators.min(1), Validators.max(100)]],
+      deliveryWeight: [25, [Validators.required, Validators.min(1), Validators.max(100)]]
+    }, { validators: this.totalWeightValidator });
+  }
+
+  private totalWeightValidator(group: FormGroup): { [key: string]: any } | null {
+    const p = group.get('priceWeight')?.value || 0;
+    const t = group.get('technicalWeight')?.value || 0;
+    const d = group.get('deliveryWeight')?.value || 0;
+    return (p + t + d === 100) ? null : { totalWeight: true };
+  }
+
+  get totalWeight(): number {
+    const p = this.tenderForm?.get('priceWeight')?.value || 0;
+    const t = this.tenderForm?.get('technicalWeight')?.value || 0;
+    const d = this.tenderForm?.get('deliveryWeight')?.value || 0;
+    return p + t + d;
   }
 
   /**
@@ -87,7 +118,7 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
         console.log('Tenders loaded:', data);
         this.tenders.set(data);
         this.isLoading.set(false);
-        
+
         // Animer les lignes après le chargement
         if (this.isBrowser && data.length > 0) {
           this.animateTableRows();
@@ -110,7 +141,7 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
       if (!this.tableContainer?.nativeElement) return;
 
       const rows = this.tableContainer.nativeElement.querySelectorAll('.tender-row');
-      
+
       if (rows.length > 0) {
         gsap.from(rows, {
           opacity: 0,
@@ -143,9 +174,14 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
    */
   switchToCreate(): void {
     this.viewState.set('CREATE');
-    this.tenderForm.reset();
+    this.tenderForm.reset({
+      priceWeight: 40,
+      technicalWeight: 35,
+      deliveryWeight: 25
+    });
+    this.selectedFiles.set([]);
     this.errorMessage.set(null);
-    
+
     if (this.isBrowser) {
       this.animateForm();
     }
@@ -156,7 +192,14 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
    */
   switchToList(): void {
     this.viewState.set('LIST');
+    this.selectedTender.set(null);
+    this.submissions.set([]);
     this.errorMessage.set(null);
+  }
+
+  onFileSelected(event: any): void {
+    const files = Array.from(event.target.files) as File[];
+    this.selectedFiles.set(files);
   }
 
   /**
@@ -165,6 +208,9 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
   onSubmit(): void {
     if (this.tenderForm.invalid) {
       this.markFormGroupTouched(this.tenderForm);
+      if (this.tenderForm.errors?.['totalWeight']) {
+        this.errorMessage.set('La somme des poids doit être égale à 100%');
+      }
       return;
     }
 
@@ -182,24 +228,60 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
         ownerUserId: currentUserData?.id || '1',
         deadline: formValue.deadline,
         criteria: [
-          { type: EvaluationCriterionType.PRICE, weight: 40 },
-          { type: EvaluationCriterionType.TECHNICAL, weight: 35 },
-          { type: EvaluationCriterionType.DEADLINE, weight: 25 }
+          { type: EvaluationCriterionType.PRICE, weight: formValue.priceWeight },
+          { type: EvaluationCriterionType.TECHNICAL_QUALITY, weight: formValue.technicalWeight },
+          { type: EvaluationCriterionType.DELIVERY_TIME, weight: formValue.deliveryWeight }
         ]
-      }
+      },
+      files: this.selectedFiles()
     };
+
+    console.log('Submitting tender with weights:', payload.data.criteria);
+    console.log('Files to upload:', this.selectedFiles().length);
 
     this.tenderService.createTender(payload).subscribe({
       next: (tender) => {
         this.isLoading.set(false);
+        this.showNotification('Appel d\'offres créé avec succès !', 'success');
         this.switchToList();
         this.loadTenders();
       },
       error: (error) => {
-        this.errorMessage.set(error.message);
+        this.showNotification(`Erreur: ${error.message}`, 'error');
         this.isLoading.set(false);
       }
     });
+  }
+
+  /**
+   * Afficher une notification toast
+   */
+  private showNotification(message: string, type: 'success' | 'error'): void {
+    this.toast.set({ show: true, message, type });
+    setTimeout(() => {
+      this.toast.update(t => ({ ...t, show: false }));
+    }, 4000);
+  }
+
+  /**
+   * Déclencher une confirmation personnalisée
+   */
+  private triggerConfirm(title: string, message: string, action: () => void): void {
+    this.confirmData.set({ title, message, action });
+    this.showConfirmModal.set(true);
+  }
+
+  cancelConfirm(): void {
+    this.showConfirmModal.set(false);
+    this.confirmData.set(null);
+  }
+
+  executeConfirm(): void {
+    const data = this.confirmData();
+    if (data) {
+      data.action();
+    }
+    this.cancelConfirm();
   }
 
   /**
@@ -207,19 +289,19 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
    */
   publishTender(id: number, event: Event): void {
     event.stopPropagation();
-    
-    if (!confirm('Voulez-vous publier cet appel d\'offres ?')) {
-      return;
-    }
-
-    this.tenderService.publishTender(id).subscribe({
-      next: () => {
-        this.loadTenders();
-      },
-      error: (error) => {
-        alert(`Erreur: ${error.message}`);
+    this.triggerConfirm(
+      'PUBLIER L\'APPEL D\'OFFRES',
+      'Êtes-vous sûr de vouloir rendre cet appel d\'offres visible aux fournisseurs ?',
+      () => {
+        this.tenderService.publishTender(id).subscribe({
+          next: () => {
+            this.showNotification('Appel d\'offres publié !', 'success');
+            this.loadTenders();
+          },
+          error: (error) => this.showNotification(error.message, 'error')
+        });
       }
-    });
+    );
   }
 
   /**
@@ -227,19 +309,19 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
    */
   closeTender(id: number, event: Event): void {
     event.stopPropagation();
-    
-    if (!confirm('Voulez-vous clôturer cet appel d\'offres ?')) {
-      return;
-    }
-
-    this.tenderService.closeTender(id).subscribe({
-      next: () => {
-        this.loadTenders();
-      },
-      error: (error) => {
-        alert(`Erreur: ${error.message}`);
+    this.triggerConfirm(
+      'CLÔTURER L\'APPEL D\'OFFRES',
+      'Voulez-vous vraiment clore cet appel d\'offres et arrêter les soumissions ?',
+      () => {
+        this.tenderService.closeTender(id).subscribe({
+          next: () => {
+            this.showNotification('Appel d\'offres clôturé.', 'success');
+            this.loadTenders();
+          },
+          error: (error) => this.showNotification(error.message, 'error')
+        });
       }
-    });
+    );
   }
 
   /**
@@ -247,27 +329,47 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
    */
   deleteTender(id: number, event: Event): void {
     event.stopPropagation();
-    
-    if (!confirm('Voulez-vous vraiment supprimer cet appel d\'offres ?')) {
-      return;
-    }
-
-    this.tenderService.deleteTender(id).subscribe({
-      next: () => {
-        this.loadTenders();
-      },
-      error: (error) => {
-        alert(`Erreur: ${error.message}`);
+    this.triggerConfirm(
+      'SUPPRIMER L\'APPEL D\'OFFRES',
+      'Cette action est irréversible. Voulez-vous vraiment supprimer ce projet ?',
+      () => {
+        this.tenderService.deleteTender(id).subscribe({
+          next: () => {
+            this.showNotification('Appel d\'offres supprimé.', 'success');
+            this.loadTenders();
+          },
+          error: (error) => this.showNotification(error.message, 'error')
+        });
       }
-    });
+    );
   }
 
   /**
    * Voir les détails d'un tender
    */
   viewTenderDetails(id: number): void {
-    // TODO: Naviguer vers la page de détails
-    console.log('View tender details:', id);
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    // 1. Set selected tender from local state or fetch it
+    const tender = this.tenders().find((t: TenderResponse) => t.id === id);
+    if (tender) {
+      this.selectedTender.set(tender);
+    }
+
+    // 2. Fetch submissions for this tender
+    this.submissionService.getSubmissionsByTender(id.toString()).subscribe({
+      next: (data: SubmissionResponse[]) => {
+        this.submissions.set(data);
+        this.viewState.set('DETAILS');
+        this.isLoading.set(false);
+      },
+      error: (error: any) => {
+        this.errorMessage.set(`Erreur chargement soumissions: ${error.message}`);
+        this.viewState.set('DETAILS'); // Still show tender info
+        this.isLoading.set(false);
+      }
+    });
   }
 
   /**
@@ -342,14 +444,14 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
    * Obtenir le nombre de tenders publiés
    */
   getPublishedCount(): number {
-    return this.tenders().filter(t => t.status === TenderStatus.PUBLISHED).length;
+    return this.tenders().filter((t: TenderResponse) => t.status === TenderStatus.PUBLISHED).length;
   }
 
   /**
    * Obtenir le nombre de tenders en brouillon
    */
   getDraftCount(): number {
-    return this.tenders().filter(t => t.status === TenderStatus.DRAFT).length;
+    return this.tenders().filter((t: TenderResponse) => t.status === TenderStatus.DRAFT).length;
   }
 
   /**

@@ -28,12 +28,13 @@
 
   <!-- Message d'erreur global -->
   @if (errorMessage()) {
-    <div class="error-banner">
-      <svg class="error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <span>{{ errorMessage() }}</span>
-    </div>
+  <div class="error-banner">
+    <svg class="error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>{{ errorMessage() }}</span>
+  </div>
   }
 
   <!-- Vue Liste -->
@@ -58,7 +59,8 @@
     <!-- Empty State -->
     <div class="empty-state" [style.display]="!isLoading() && tenders().length === 0 ? 'flex' : 'none'">
       <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
       <h3 class="empty-title">Aucun appel d'offres</h3>
       <p class="empty-text">Créez votre premier appel d'offres pour commencer</p>
@@ -68,7 +70,8 @@
     </div>
 
     <!-- Table -->
-    <div #tableContainer class="table-container" [style.display]="!isLoading() && tenders().length > 0 ? 'block' : 'none'">
+    <div #tableContainer class="table-container"
+      [style.display]="!isLoading() && tenders().length > 0 ? 'block' : 'none'">
       <table class="tender-table">
         <thead>
           <tr class="table-header-row">
@@ -81,68 +84,57 @@
         </thead>
         <tbody>
           @for (tender of tenders(); track tender.id) {
-            <tr class="tender-row" (click)="viewTenderDetails(tender.id)">
-              <td class="table-cell">
-                <div class="tender-title">{{ tender.title }}</div>
-                <div class="tender-description">{{ tender.description }}</div>
-              </td>
-              <td class="table-cell">
-                <div class="tender-deadline">{{ tender.deadline }}</div>
-                @if (tender.publicationDate) {
-                  <div class="tender-pub-date">Publié le {{ tender.publicationDate }}</div>
+          <tr class="tender-row" (click)="viewTenderDetails(tender.id)">
+            <td class="table-cell">
+              <div class="tender-title">{{ tender.title }}</div>
+              <div class="tender-description">{{ tender.description }}</div>
+            </td>
+            <td class="table-cell">
+              <div class="tender-deadline">{{ tender.deadline }}</div>
+              @if (tender.publicationDate) {
+              <div class="tender-pub-date">Publié le {{ tender.publicationDate }}</div>
+              }
+            </td>
+            <td class="table-cell">
+              <span class="status-badge" [ngClass]="getStatusClass(tender.status)">
+                {{ getStatusLabel(tender.status) }}
+              </span>
+            </td>
+            <td class="table-cell">
+              <div class="criteria-list">
+                @for (criterion of tender.criteria; track criterion.id) {
+                <div class="criterion-item">
+                  <span class="criterion-type">{{ criterion.type }}</span>
+                  <span class="criterion-weight">{{ criterion.weight }}%</span>
+                </div>
                 }
-              </td>
-              <td class="table-cell">
-                <span class="status-badge" [ngClass]="getStatusClass(tender.status)">
-                  {{ getStatusLabel(tender.status) }}
-                </span>
-              </td>
-              <td class="table-cell">
-                <div class="criteria-list">
-                  @for (criterion of tender.criteria; track criterion.id) {
-                    <div class="criterion-item">
-                      <span class="criterion-type">{{ criterion.type }}</span>
-                      <span class="criterion-weight">{{ criterion.weight }}%</span>
-                    </div>
-                  }
-                </div>
-              </td>
-              <td class="table-cell text-right">
-                <div class="action-buttons">
-                  @if (tender.status === TenderStatus.DRAFT) {
-                    <button 
-                      (click)="publishTender(tender.id, $event)" 
-                      class="btn-action btn-publish"
-                      title="Publier"
-                    >
-                      <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </button>
-                  }
-                  @if (tender.status === TenderStatus.PUBLISHED) {
-                    <button 
-                      (click)="closeTender(tender.id, $event)" 
-                      class="btn-action btn-close"
-                      title="Clôturer"
-                    >
-                      <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  }
-                  <button 
-                    (click)="deleteTender(tender.id, $event)" 
-                    class="btn-action btn-delete"
-                    title="Supprimer"
-                  >
-                    <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
+              </div>
+            </td>
+            <td class="table-cell text-right">
+              <div class="action-buttons">
+                @if (tender.status === TenderStatus.DRAFT) {
+                <button (click)="publishTender(tender.id, $event)" class="btn-action btn-publish" title="Publier">
+                  <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+                }
+                @if (tender.status === TenderStatus.PUBLISHED) {
+                <button (click)="closeTender(tender.id, $event)" class="btn-action btn-close" title="Clôturer">
+                  <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                }
+                <button (click)="deleteTender(tender.id, $event)" class="btn-action btn-delete" title="Supprimer">
+                  <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
           }
         </tbody>
       </table>
@@ -150,109 +142,317 @@
   </div>
 
   <!-- Vue Création -->
-  <div #formContainer class="content-section" [style.display]="viewState() === 'LIST' ? 'none' : 'block'">
-    <!-- Header de section -->
+  <div #formContainer class="content-section" [style.display]="viewState() === 'CREATE' ? 'block' : 'none'">
     <div class="section-header">
-      <h2 class="section-title">CRÉER UN APPEL D'OFFRES</h2>
+      <h2 class="section-title">CRÉER UN NOUVEL APPEL D'OFFRES</h2>
       <button (click)="switchToList()" class="btn-secondary">
         <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        RETOUR
+        ANNULER
       </button>
     </div>
 
-    <!-- Formulaire -->
     <form [formGroup]="tenderForm" (ngSubmit)="onSubmit()" class="tender-form">
-      <!-- Titre -->
-      <div class="form-group">
-        <label for="title" class="form-label">TITRE DU PROJET</label>
-        <input
-          id="title"
-          type="text"
-          formControlName="title"
-          class="form-input"
-          [class.error]="hasError('title')"
-          placeholder="Ex: Construction du Nouveau Pont"
-        />
-        @if (hasError('title')) {
-          <span class="field-error">{{ getErrorMessage('title') }}</span>
-        }
+      <!-- Section 1: Informations Générales -->
+      <div class="form-section">
+        <h3 class="text-xs uppercase tracking-widest text-brutal-neon mb-6 flex items-center gap-2">
+          <span class="w-2 h-2 bg-brutal-neon"></span>
+          1. Informations Générales
+        </h3>
+
+        <div class="space-y-6">
+          <div class="form-group">
+            <label class="form-label">Titre du projet</label>
+            <input type="text" formControlName="title" class="form-input" [class.error]="hasError('title')"
+              placeholder="Ex: Construction de la nouvelle marina">
+            @if (hasError('title')) {
+            <span class="field-error">{{ getErrorMessage('title') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description détaillée</label>
+            <textarea formControlName="description" rows="4" class="form-textarea"
+              [class.error]="hasError('description')"
+              placeholder="Décrivez les besoins, les objectifs et les contraintes du projet..."></textarea>
+            @if (hasError('description')) {
+            <span class="field-error">{{ getErrorMessage('description') }}</span>
+            }
+          </div>
+        </div>
       </div>
 
-      <!-- Description -->
-      <div class="form-group">
-        <label for="description" class="form-label">DESCRIPTION</label>
-        <textarea
-          id="description"
-          formControlName="description"
-          class="form-textarea"
-          [class.error]="hasError('description')"
-          placeholder="Décrivez votre projet en détail..."
-          rows="6"
-        ></textarea>
-        @if (hasError('description')) {
-          <span class="field-error">{{ getErrorMessage('description') }}</span>
-        }
-      </div>
+      <!-- Section 2: Paramètres & Documents -->
+      <div class="form-section">
+        <h3 class="text-xs uppercase tracking-widest text-brutal-neon mb-6 flex items-center gap-2">
+          <span class="w-2 h-2 bg-brutal-neon"></span>
+          2. Paramètres & Documents
+        </h3>
 
-      <!-- Deadline et Budget -->
-      <div class="form-row">
-        <div class="form-group">
-          <label for="deadline" class="form-label">DATE LIMITE</label>
-          <input
-            id="deadline"
-            type="date"
-            formControlName="deadline"
-            class="form-input"
-            [class.error]="hasError('deadline')"
-          />
-          @if (hasError('deadline')) {
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date limite de soumission</label>
+            <input type="date" formControlName="deadline" class="form-input" [class.error]="hasError('deadline')">
+            @if (hasError('deadline')) {
             <span class="field-error">{{ getErrorMessage('deadline') }}</span>
-          }
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Documents de référence</label>
+            <div class="file-drop-zone relative">
+              <input type="file" (change)="onFileSelected($event)" multiple
+                class="absolute inset-0 opacity-0 cursor-pointer" accept=".pdf,.doc,.docx,.xls,.xlsx" #fileInput>
+              <div class="flex items-center justify-center gap-3 py-2 cursor-pointer" (click)="fileInput.click()">
+                <svg class="w-5 h-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <span class="text-xs text-white/50">Cliquez pour ajouter des fichiers</span>
+              </div>
+            </div>
+            @if (selectedFiles().length > 0) {
+            <div class="mt-2 text-xs text-brutal-neon">
+              {{ selectedFiles().length }} fichier(s) sélectionné(s)
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Critères d'Évaluation -->
+      <div class="form-section">
+        <h3 class="text-xs uppercase tracking-widest text-brutal-neon mb-6 flex items-center gap-2">
+          <span class="w-2 h-2 bg-brutal-neon"></span>
+          3. Critères d'Évaluation
+        </h3>
+
+        <p class="text-xs text-white/50 mb-6 italic">
+          Définissez l'importance relative de chaque critère. Le total doit être égal à 100%.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="form-group">
+            <label class="form-label text-[10px] opacity-60">Prix (%)</label>
+            <input type="number" formControlName="priceWeight" class="form-input"
+              [class.error]="hasError('priceWeight')" placeholder="40">
+          </div>
+          <div class="form-group">
+            <label class="form-label text-[10px] opacity-60">Qualité Technique (%)</label>
+            <input type="number" formControlName="technicalWeight" class="form-input"
+              [class.error]="hasError('technicalWeight')" placeholder="35">
+          </div>
+          <div class="form-group">
+            <label class="form-label text-[10px] opacity-60">Délai de Livraison (%)</label>
+            <input type="number" formControlName="deliveryWeight" class="form-input"
+              [class.error]="hasError('deliveryWeight')" placeholder="25">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="budget" class="form-label">BUDGET ESTIMÉ (€)</label>
-          <input
-            id="budget"
-            type="number"
-            formControlName="budget"
-            class="form-input"
-            [class.error]="hasError('budget')"
-            placeholder="Ex: 500000"
-          />
-          @if (hasError('budget')) {
-            <span class="field-error">{{ getErrorMessage('budget') }}</span>
+        <div class="flex items-center justify-between mt-8 p-4 bg-white/[0.03] border-l-4"
+          [class.border-brutal-neon]="totalWeight === 100" [class.border-brutal-accent]="totalWeight !== 100">
+          <div>
+            <span class="text-[10px] uppercase tracking-widest opacity-50 block mb-1">Somme actuelle</span>
+            <span class="text-lg font-mono font-bold" [class.text-brutal-neon]="totalWeight === 100"
+              [class.text-brutal-accent]="totalWeight !== 100">
+              {{ totalWeight }}%
+            </span>
+          </div>
+          @if (totalWeight !== 100) {
+          <span class="text-[10px] text-brutal-accent uppercase font-bold animate-pulse">
+            Doit être égal à 100%
+          </span>
+          } @else {
+          <span class="text-[10px] text-brutal-neon uppercase font-bold">
+            Configuration Valide
+          </span>
           }
         </div>
       </div>
 
-      <!-- Info critères -->
-      <div class="info-box">
+      <div class="info-box mt-4">
         <svg class="info-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div>
-          <p class="info-title">Critères d'évaluation par défaut</p>
-          <p class="info-text">Prix (40%), Technique (35%), Délai (25%)</p>
+          <h4 class="info-title">Pondération Personnalisée</h4>
+          <p class="info-text">
+            Vous avez le plein contrôle sur la pondération des critères. Ajustez les pourcentages ci-dessus selon vos
+            priorités stratégiques.
+          </p>
         </div>
       </div>
 
-      <!-- Boutons -->
-      <div class="form-actions">
+      <div class="form-actions mt-8">
         <button type="button" (click)="switchToList()" class="btn-cancel">
           ANNULER
         </button>
-        <button type="submit" class="btn-submit" [disabled]="isLoading()">
+        <button type="submit" [disabled]="isLoading() || totalWeight !== 100" class="btn-submit">
           @if (isLoading()) {
-            <span class="loading-spinner-sm"></span>
-            <span>CRÉATION EN COURS...</span>
+          <div class="loading-spinner-sm"></div>
+          CRÉATION EN COURS...
           } @else {
-            <span>CRÉER L'APPEL D'OFFRES</span>
+          CRÉER L'APPEL D'OFFRES
           }
         </button>
       </div>
     </form>
+  </div>
+
+  <!-- Vue Détails -->
+  <div class="content-section" [style.display]="viewState() === 'DETAILS' ? 'block' : 'none'">
+    @if (selectedTender()) {
+    <div class="section-header">
+      <h2 class="section-title">DÉTAILS : {{ selectedTender()!.title }}</h2>
+      <div class="flex gap-3">
+        <button (click)="viewTenderDetails(selectedTender()!.id)" class="btn-secondary">
+          <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          ACTUALISER
+        </button>
+        <button (click)="switchToList()" class="btn-secondary">
+          <svg class="btn-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          RETOUR
+        </button>
+      </div>
+    </div>
+
+    <!-- Tender Summary -->
+    <div class="tender-details-grid">
+      <div class="details-card">
+        <h3 class="details-card-title">INFORMATIONS GÉNÉRALES</h3>
+        <div class="details-info-list">
+          <div class="info-item">
+            <span class="info-label">Statut</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedTender()!.status)">
+              {{ getStatusLabel(selectedTender()!.status) }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Date limite</span>
+            <span class="info-value">{{ selectedTender()!.deadline }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Description</span>
+            <p class="info-value-text">{{ selectedTender()!.description }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-card">
+        <h3 class="details-card-title">CRITÈRES DE SÉLECTION</h3>
+        <div class="criteria-list-large">
+          @for (criterion of selectedTender()!.criteria; track criterion.id) {
+          <div class="criterion-item-large">
+            <span class="criterion-name">{{ criterion.type }}</span>
+            <div class="criterion-bar-bg">
+              <div class="criterion-bar-fill" [style.width.%]="criterion.weight"></div>
+            </div>
+            <span class="criterion-value">{{ criterion.weight }}%</span>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Submissions List -->
+    <div class="submissions-section mt-8">
+      <h3 class="section-subtitle">SOUMISSIONS REÇUES ({{ submissions().length }})</h3>
+
+      <div class="table-container mt-4">
+        @if (submissions().length === 0) {
+        <div class="empty-state-sm">
+          <p>Aucune soumission n'a été reçue pour le moment.</p>
+        </div>
+        } @else {
+        <table class="tender-table">
+          <thead>
+            <tr class="table-header-row">
+              <th class="table-header">FOURNISSEUR</th>
+              <th class="table-header">PRIX (€)</th>
+              <th class="table-header">SCORE IA</th>
+              <th class="table-header">ANALYSE RAG</th>
+              <th class="table-header">STATUT</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (sub of submissions(); track sub.id) {
+            <tr class="tender-row no-click">
+              <td class="table-cell font-bold">{{ sub.supplierId }}</td>
+              <td class="table-cell font-mono">{{ sub.price | number:'1.2-2' }}</td>
+              <td class="table-cell">
+                <div class="score-badge" [class.score-high]="sub.score >= 80" [class.score-low]="sub.score < 50">
+                  {{ sub.score | number:'1.1-1' }}
+                </div>
+              </td>
+              <td class="table-cell">
+                <div class="rag-text" [title]="sub.ragAnalysis || 'Pas encore analysé'">
+                  {{ sub.ragAnalysis || 'En attente d\'analyse...' }}
+                </div>
+              </td>
+              <td class="table-cell">
+                <span class="status-badge sub-status-{{sub.status.toLowerCase()}}">
+                  {{ sub.status }}
+                </span>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+        }
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Confirmation Modal Custom -->
+  @if (showConfirmModal()) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-brutal-black/80 backdrop-blur-sm" (click)="cancelConfirm()"></div>
+    <div
+      class="relative bg-brutal-black border-2 border-white p-8 max-w-md w-full shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+      <h3 class="text-xl font-bold uppercase tracking-tight mb-4 font-space">{{ confirmData()?.title }}</h3>
+      <p class="text-white/70 mb-8 leading-relaxed">{{ confirmData()?.message }}</p>
+      <div class="flex gap-4">
+        <button (click)="cancelConfirm()"
+          class="flex-1 px-4 py-3 border border-white/20 text-white/50 hover:bg-white/5 transition-all uppercase text-xs font-bold tracking-widest">
+          ANNULER
+        </button>
+        <button (click)="executeConfirm()"
+          class="flex-1 px-4 py-3 bg-white text-brutal-black hover:bg-white/90 transition-all uppercase text-xs font-bold tracking-widest shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)]">
+          CONFIRMER
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Toast Notification System -->
+  <div class="fixed top-8 right-8 z-[110] flex flex-col gap-4 pointer-events-none">
+    @if (toast().show) {
+    <div
+      class="pointer-events-auto px-6 py-4 flex items-center gap-4 border-l-4 shadow-xl translate-x-0 transition-all duration-300"
+      [class.bg-brutal-black]="true" [class.border-brutal-neon]="toast().type === 'success'"
+      [class.border-brutal-accent]="toast().type === 'error'" [class.animate-toast-in]="toast().show">
+
+      @if (toast().type === 'success') {
+      <svg class="w-5 h-5 text-brutal-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      } @else {
+      <svg class="w-5 h-5 text-brutal-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+      }
+
+      <span class="text-sm font-medium uppercase tracking-wider">{{ toast().message }}</span>
+    </div>
+    }
   </div>
 </div>
