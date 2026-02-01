@@ -41,7 +41,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         // 1️⃣ Vérifie si l’appel d'offre est ouvert
         TenderResponse tender = tenderClient.getTender(req.tenderId());
-        if (!"DRAFT".equals(tender.status())) {
+        if (!"PUBLISHED".equals(tender.status())) {
             throw new RuntimeException("Tender is not open for submission");
         }
 
@@ -108,8 +108,28 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
+    public List<SubmissionResponse> getAllSubmissions() {
+        List<Submission> submissions = repo.findAll();
+        List<SubmissionResponse> responses = new ArrayList<>();
+        for (Submission s : submissions) {
+            responses.add(subMapper.toResponse(s));
+        }
+        return responses;
+    }
+
+    @Override
     public List<SubmissionResponse> getByTender(String tenderId) {
         List<Submission> submissions = repo.findByTenderId(tenderId);
+        List<SubmissionResponse> responses = new ArrayList<>();
+        for (Submission s : submissions) {
+            responses.add(subMapper.toResponse(s));
+        }
+        return responses;
+    }
+
+    @Override
+    public List<SubmissionResponse> getBySupplier(String supplierId) {
+        List<Submission> submissions = repo.findBySupplierId(supplierId);
         List<SubmissionResponse> responses = new ArrayList<>();
         for (Submission s : submissions) {
             responses.add(subMapper.toResponse(s));

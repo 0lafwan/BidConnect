@@ -45,10 +45,22 @@ public class SubmissionController {
         return submissionService.findSubmission(id);
     }
 
+    @Operation(summary = "Get all submissions", description = "Retrieve all submissions in the system")
+    @GetMapping
+    public List<SubmissionResponse> getAll() {
+        return submissionService.getAllSubmissions();
+    }
+
     @Operation(summary = "Get submissions by tender ID", description = "Retrieve all submissions for a specific tender")
     @GetMapping("/tender/{tenderId}")
     public List<SubmissionResponse> getByTender(@PathVariable String tenderId) {
         return submissionService.getByTender(tenderId);
+    }
+
+    @Operation(summary = "Get submissions by supplier ID", description = "Retrieve all submissions for a specific supplier")
+    @GetMapping("/supplier/{supplierId}")
+    public List<SubmissionResponse> getBySupplier(@PathVariable String supplierId) {
+        return submissionService.getBySupplier(supplierId);
     }
 
 }
