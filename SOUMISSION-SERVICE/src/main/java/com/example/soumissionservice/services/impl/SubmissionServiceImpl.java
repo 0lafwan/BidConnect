@@ -9,11 +9,15 @@ import com.example.soumissionservice.repository.SubmissionRepository;
 import com.example.soumissionservice.services.EvaluationService;
 import com.example.soumissionservice.services.SubmissionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +30,12 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final EvaluationService evaluationService;
     // private final UserClient userClient;
     // private final NotificationClient notificationClient;
+
+    @Qualifier("submissionMapperImpl")
     private final SubmissionMapper subMapper;
+
+    @Value("${services.document.base-url}")
+    private String documentServiceUrl;
 
     // Ce que doit faire createSubmission maintenant (logique correcte)
     // Ordre logique :
@@ -63,8 +72,14 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         // 4️⃣ Analyse IA
 
-        aiClient.ingestFile(new IngestionRequest(s.getDocumentId(),
-                "http://localhost:8081/api/documents/" + s.getDocumentId() + "/download"));
+        //aiClient.ingestFile(new IngestionRequest(s.getDocumentId(),
+        //        "http://localhost:8081/api/documents/" + s.getDocumentId() + "/download"));
+
+        aiClient.ingestFile(new IngestionRequest(
+                s.getDocumentId(),
+                documentServiceUrl + "/api/documents/" + s.getDocumentId() + "/download"
+        ));
+
 
         ChatRequest chatrequest = new ChatRequest(
                 "give me key point's in the submission with the supplierId: " + s.getSupplierId(),

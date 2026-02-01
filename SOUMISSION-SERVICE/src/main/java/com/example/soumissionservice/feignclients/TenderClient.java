@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
-@FeignClient(name = "tender-service", url = "http://localhost:8080")
+@FeignClient(name = "tender-service", url = "${services.tender.base-url}")
 @Component
 public interface TenderClient {
 

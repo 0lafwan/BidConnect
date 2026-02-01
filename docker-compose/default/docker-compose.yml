@@ -36,6 +36,51 @@ services:
       file: common-config.yml
       service: microservice-base-config
 
+  eurekaserver:
+    image: "jsalahddine/eurekaserver:v1"
+    container_name: eurekaserver-ms
+    ports:
+      - "8070:8070"
+    depends_on:
+      configserver:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8070/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    extends:
+      file: common-configuration.yml
+      service: microservice-configserver-config
+    environment:
+      SPRING_APPLICATION_NAME: "eurekaserver"
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      #OTEL_SERVICE_NAME: "eurekaserver"
+
+  gatewayserver:
+    image: "jsalahddine/gatewayserver:v1"
+    container_name: gatewayserver-ms
+    ports:
+      - "8072:8072"
+    depends_on:
+      tender-service:
+        condition: service_healthy
+      document-service:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: "gatewayserver"
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
+      #OTEL_SERVICE_NAME: "gatewayserver"
+      #SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
+    extends:
+      file: common-configuration.yml
+      service: microservice-eureka-config
+
+
+
   tender-service:
     image: "jsalahddine/tenderservice:v1"
     container_name: tender-ms
@@ -44,6 +89,14 @@ services:
     depends_on:
       configserver:
         condition: service_healthy
+      eurekaserver:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     environment:
       SPRING_APPLICATION_NAME: "tender-service"
       SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
@@ -51,7 +104,7 @@ services:
       SERVICES_AI_BASE_URL: "http://ai-service:8085"
     extends:
       file: common-config.yml
-      service: microservice-configserver-config
+      service: microservice-eureka-config
 
 
   minio:
@@ -80,6 +133,14 @@ services:
         condition: service_started
       #configserver:                      pour le moment on a pas encore centralisé la config de document-service
       #  condition: service_healthy
+      eurekaserver:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8081/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     environment:
       SPRING_APPLICATION_NAME: "DOCUMENT-SERVICE"
       MINIO_URL: "http://minio:9000"
@@ -88,7 +149,7 @@ services:
       MINIO_BUCKET: "documents"
     extends:
       file: common-config.yml
-      service: microservice-configserver-config
+      service: microservice-eureka-config
 
 
   qdrant:
@@ -129,6 +190,14 @@ services:
         condition: service_started
       qdrant:
         condition: service_started
+      eurekaserver:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8085/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     environment:
       SPRING_APPLICATION_NAME: "AI-SERVICE"
 
@@ -146,7 +215,33 @@ services:
 
     extends:
       file: common-config.yml
-      service: microservice-configserver-config
+      service: microservice-eureka-config
+
+
+  soumission-service:
+    image: "jsalahddine/soumissionservice:v1"
+    container_name: soumission-ms
+    ports:
+      - "8084:8084"
+    depends_on:
+      #configserver:
+      #  condition: service_healthy
+      eurekaserver:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail --silent localhost:8084/actuator/health/readiness | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    environment:
+      SPRING_APPLICATION_NAME: "SOUMISSION-SERVICE"
+      SERVICES_DOCUMENT_BASE_URL: "http://document-service:8081"
+      SERVICES_AI_BASE_URL: "http://ai-service:8085"
+      SERVICES_TENDER_BASE_URL: "http://tender-service:8080"
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-config
 
 
 

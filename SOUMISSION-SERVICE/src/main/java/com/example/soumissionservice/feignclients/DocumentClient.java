@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
-@FeignClient(name = "document-service", url = "http://localhost:8081")
+@FeignClient(name = "document-service", url = "${services.document.base-url}")
 @Component
 public interface DocumentClient {
 
