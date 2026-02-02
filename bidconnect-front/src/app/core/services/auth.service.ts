@@ -89,7 +89,7 @@ export class AuthService {
     // Stocker le token et l'utilisateur
     localStorage.setItem(this.TOKEN_KEY, response.token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
-    
+
     // Mettre à jour le signal
     this.currentUserSignal.set(response.user);
 
@@ -117,10 +117,10 @@ export class AuthService {
     // Nettoyer le storage
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
-    
+
     // Réinitialiser le state
     this.currentUserSignal.set(null);
-    
+
     // Rediriger vers login
     this.router.navigate(['/login']);
   }
@@ -196,7 +196,7 @@ export class AuthService {
    */
   private handleError(error: HttpErrorResponse): Observable<never> {
     this.isLoadingSignal.set(false);
-    
+
     let errorMessage = 'Une erreur est survenue';
 
     if (error.error instanceof ErrorEvent) {

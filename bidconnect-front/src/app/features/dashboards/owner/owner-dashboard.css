@@ -66,7 +66,8 @@
 /* Content Section */
 .content-section {
   @apply bg-white/5 border border-white/10 p-4 md:p-6;
-  opacity: 1; /* Important: toujours visible par défaut */
+  opacity: 1;
+  /* Important: toujours visible par défaut */
 }
 
 .content-section.hidden {
@@ -107,7 +108,8 @@
 /* Loading State */
 .loading-container {
   @apply flex flex-col items-center justify-center py-16;
-  opacity: 1; /* Important */
+  opacity: 1;
+  /* Important */
 }
 
 .loading-container.hidden {
@@ -132,7 +134,8 @@
 /* Empty State */
 .empty-state {
   @apply flex flex-col items-center justify-center py-16 text-center;
-  opacity: 1; /* Important */
+  opacity: 1;
+  /* Important */
 }
 
 .empty-state.hidden {
@@ -155,7 +158,8 @@
 /* Table */
 .table-container {
   @apply overflow-x-auto;
-  opacity: 1; /* Important */
+  opacity: 1;
+  /* Important */
 }
 
 .table-container.hidden {
@@ -178,7 +182,8 @@
   @apply border-b border-white/10;
   @apply hover:bg-white/5 cursor-pointer;
   @apply transition-colors duration-200;
-  opacity: 1; /* Important pour GSAP */
+  opacity: 1;
+  /* Important pour GSAP */
 }
 
 .table-cell {
@@ -313,6 +318,20 @@
   @apply grid grid-cols-1 md:grid-cols-2 gap-6;
 }
 
+.form-section {
+  @apply bg-white/[0.02] border border-white/10 p-6 mb-8;
+  @apply transition-all duration-300;
+}
+
+.form-section:hover {
+  @apply border-white/20 bg-white/[0.04];
+}
+
+.file-drop-zone {
+  @apply mt-2 border-2 border-dashed border-white/10 p-4 transition-all duration-300;
+  @apply hover:border-white/30 hover:bg-white/5;
+}
+
 /* Info Box */
 .info-box {
   @apply flex items-start gap-3 p-4;
@@ -363,6 +382,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+
   .table-header,
   .table-cell {
     @apply px-2 py-2;
@@ -379,4 +399,128 @@
   .criteria-list {
     @apply hidden;
   }
+}
+
+/* Details View Specifics */
+.tender-details-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-8 mb-8;
+}
+
+.details-card {
+  @apply bg-white/5 border border-white/10 p-6;
+}
+
+.details-card-title {
+  @apply text-sm font-bold text-white/50 uppercase tracking-widest mb-6 border-b border-white/10 pb-2;
+}
+
+.details-info-list {
+  @apply space-y-4;
+}
+
+.info-item {
+  @apply flex flex-col gap-1;
+}
+
+.info-label {
+  @apply text-xs text-white/40 uppercase tracking-wider;
+}
+
+.info-value {
+  @apply text-sm font-mono;
+}
+
+.info-value-text {
+  @apply text-sm text-white/80 leading-relaxed;
+}
+
+.criteria-list-large {
+  @apply space-y-6;
+}
+
+.criterion-item-large {
+  @apply space-y-2;
+}
+
+.criterion-name {
+  @apply text-xs text-white/70 uppercase font-medium;
+}
+
+.criterion-bar-bg {
+  @apply h-2 bg-white/10 w-full;
+}
+
+.criterion-bar-fill {
+  @apply h-full bg-brutal-neon;
+}
+
+.criterion-value {
+  @apply block text-sm font-mono text-brutal-neon text-right;
+}
+
+.section-subtitle {
+  @apply text-lg font-bold uppercase tracking-tight;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Submission Table Enhancements */
+.no-click {
+  @apply cursor-default hover:bg-transparent;
+}
+
+.score-badge {
+  @apply inline-block px-3 py-1 bg-white/10 text-white font-bold font-mono text-xs;
+}
+
+.score-high {
+  @apply bg-brutal-neon text-brutal-black;
+}
+
+.score-low {
+  @apply bg-brutal-accent text-white;
+}
+
+.rag-text {
+  @apply max-w-xs truncate text-xs text-white/60 italic;
+}
+
+.sub-status-submitted {
+  @apply bg-blue-500/10 border-blue-500/50 text-blue-400;
+}
+
+.sub-status-accepted {
+  @apply bg-green-500/10 border-green-500/50 text-green-400;
+}
+
+.sub-status-rejected {
+  @apply bg-brutal-accent/10 border-brutal-accent/50 text-brutal-accent;
+}
+
+.sub-status-in_evaluation {
+  @apply bg-yellow-500/10 border-yellow-500/50 text-yellow-400;
+}
+
+.empty-state-sm {
+  @apply p-8 text-center border border-dashed border-white/20 text-white/40 text-sm;
+}
+
+/* Animations Personalisées */
+.animate-toast-in {
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.font-space {
+  font-family: 'Space Grotesk', sans-serif;
 }

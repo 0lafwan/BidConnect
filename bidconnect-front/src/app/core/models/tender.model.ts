@@ -12,10 +12,8 @@ export enum TenderStatus {
 
 export enum EvaluationCriterionType {
   PRICE = 'PRICE',
-  TECHNICAL = 'TECHNICAL',
-  DEADLINE = 'DEADLINE',
-  EXPERIENCE = 'EXPERIENCE',
-  QUALITY = 'QUALITY'
+  TECHNICAL_QUALITY = 'TECHNICAL_QUALITY',
+  DELIVERY_TIME = 'DELIVERY_TIME'
 }
 
 export interface EvaluationCriterionRequest {

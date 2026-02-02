@@ -16,9 +16,9 @@ export class SubmissionService {
   private http = inject(HttpClient);
 
   // Configuration
-  private readonly GATEWAY_URL = 'http://localhost:8072';
+  private readonly GATEWAY_URL = ''; // Empty for proxy to handle
   private readonly BASE_PATH = '/bindconnect/soumission-service/api/submissions';
-  private readonly MOCK_MODE = true; // Mettre à false pour utiliser le vrai backend
+  private readonly MOCK_MODE = false; // Mettre à false pour utiliser le vrai backend
 
   /**
    * Créer une nouvelle soumission
@@ -28,14 +28,13 @@ export class SubmissionService {
       return this.mockCreateSubmission(request);
     }
 
-    /* CODE RÉEL (à décommenter quand le backend est prêt)
     const formData = new FormData();
     formData.append('tenderId', request.tenderId);
     formData.append('supplierId', request.supplierId);
     formData.append('price', request.price.toString());
     formData.append('technical', request.technical.toString());
     formData.append('deadline', request.deadline.toString());
-    
+
     if (request.document) {
       formData.append('document', request.document, request.document.name);
     }
@@ -46,9 +45,6 @@ export class SubmissionService {
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockCreateSubmission(request);
   }
 
   /**
@@ -59,15 +55,11 @@ export class SubmissionService {
       return this.mockDeleteSubmission(id);
     }
 
-    /* CODE RÉEL
     return this.http.delete<void>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/${id}`
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockDeleteSubmission(id);
   }
 
   /**
@@ -78,16 +70,12 @@ export class SubmissionService {
       return this.mockUpdateStatus(id, statusUpdate);
     }
 
-    /* CODE RÉEL
     return this.http.patch<void>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/${id}/status`,
       statusUpdate
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockUpdateStatus(id, statusUpdate);
   }
 
   /**
@@ -98,15 +86,11 @@ export class SubmissionService {
       return this.mockGetSubmissionById(id);
     }
 
-    /* CODE RÉEL
     return this.http.get<SubmissionResponse>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/${id}`
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockGetSubmissionById(id);
   }
 
   /**
@@ -117,15 +101,11 @@ export class SubmissionService {
       return this.mockGetAllSubmissions();
     }
 
-    /* CODE RÉEL
     return this.http.get<SubmissionResponse[]>(
       `${this.GATEWAY_URL}${this.BASE_PATH}`
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockGetAllSubmissions();
   }
 
   /**
@@ -136,15 +116,11 @@ export class SubmissionService {
       return this.mockGetSubmissionsByTender(tenderId);
     }
 
-    /* CODE RÉEL
     return this.http.get<SubmissionResponse[]>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/tender/${tenderId}`
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockGetSubmissionsByTender(tenderId);
   }
 
   /**
@@ -155,15 +131,11 @@ export class SubmissionService {
       return this.mockGetSubmissionsBySupplier(supplierId);
     }
 
-    /* CODE RÉEL
     return this.http.get<SubmissionResponse[]>(
       `${this.GATEWAY_URL}${this.BASE_PATH}/supplier/${supplierId}`
     ).pipe(
       catchError(this.handleError)
     );
-    */
-
-    return this.mockGetSubmissionsBySupplier(supplierId);
   }
 
   // ============================================================
@@ -301,7 +273,7 @@ export class SubmissionService {
 
   private handleError(error: any): Observable<never> {
     console.error('SubmissionService Error:', error);
-    
+
     let errorMessage = 'Une erreur est survenue';
 
     if (error.error instanceof ErrorEvent) {
@@ -318,7 +290,8 @@ export class SubmissionService {
           errorMessage = 'Soumission déjà existante pour cet appel d\'offres';
           break;
         case 500:
-          errorMessage = 'Erreur serveur';
+          const backendMsg = error.error?.errorMessage || error.error?.message;
+          errorMessage = backendMsg ? `Erreur serveur: ${backendMsg}` : 'Erreur serveur';
           break;
         default:
           errorMessage = `Erreur ${error.status}: ${error.message}`;
