@@ -243,6 +243,58 @@ services:
       file: common-config.yml
       service: microservice-eureka-config
 
+  user-service:
+    image: "jsalahddine/userservice:v1"
+    container_name: user-ms
+    ports:
+      - "8083:8083"
+    depends_on:
+      keycloak:
+        condition: service_started
+    environment:
+      SPRING_APPLICATION_NAME: "USER-SERVICE"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://host.docker.internal:8084/realms/bindconnect"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://host.docker.internal:8084/realms/bindconnect/protocol/openid-connect/certs"
+    extends:
+      file: common-config.yml
+      service: microservice-base-config
+
+  #--------------------------------
+  keycloak-db:
+    image: postgres:15-alpine
+    container_name: keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloakpass
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    depends_on:
+      - keycloak-db
+    ports:
+      - "8084:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloakpass
+
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    command: start-dev
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
 
 
 networks:
@@ -254,3 +306,4 @@ volumes:
     qdrant_storage:
     ai_pg_data:
     rabbit_data:
+    keycloak_db_data:
