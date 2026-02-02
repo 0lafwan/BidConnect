@@ -51,7 +51,7 @@ services:
       retries: 20
       start_period: 10s
     extends:
-      file: common-configuration.yml
+      file: common-config.yml
       service: microservice-configserver-config
     environment:
       SPRING_APPLICATION_NAME: "eurekaserver"
@@ -76,7 +76,7 @@ services:
       #OTEL_SERVICE_NAME: "gatewayserver"
       #SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
     extends:
-      file: common-configuration.yml
+      file: common-config.yml
       service: microservice-eureka-config
 
 
@@ -249,6 +249,8 @@ services:
     ports:
       - "8083:8083"
     depends_on:
+      eurekaserver:
+        condition: service_healthy
       keycloak:
         condition: service_started
     environment:
@@ -257,7 +259,7 @@ services:
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://host.docker.internal:8084/realms/bindconnect/protocol/openid-connect/certs"
     extends:
       file: common-config.yml
-      service: microservice-base-config
+      service: microservice-eureka-config
 
   #--------------------------------
   keycloak-db:
@@ -291,6 +293,10 @@ services:
 
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
+
+      # IMPORTANT: fixe l'URL publique (issuer)
+      KC_HOSTNAME: host.docker.internal
+      KC_HOSTNAME_PORT: "8084"
     command: start-dev
     extends:
       file: common-config.yml
