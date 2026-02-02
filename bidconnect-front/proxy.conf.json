@@ -23,6 +23,15 @@
         "changeOrigin": true,
         "logLevel": "debug"
     },
+    "/bindconnect/ai-service": {
+        "target": "http://localhost:8085",
+        "secure": false,
+        "changeOrigin": true,
+        "pathRewrite": {
+            "^/bindconnect/ai-service": ""
+        },
+        "logLevel": "debug"
+    },
     "/api": {
         "target": "http://localhost:8072",
         "secure": false,

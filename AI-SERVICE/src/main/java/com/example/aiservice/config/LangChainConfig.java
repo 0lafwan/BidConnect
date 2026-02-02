@@ -1,6 +1,6 @@
 package com.example.aiservice.config;
 
-import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,10 +16,10 @@ import org.springframework.context.annotation.Configuration;
 public class LangChainConfig {
 
     /**
-     * Chat Memory for conversation context
+     * Chat Memory Provider for conversation isolation
      */
     @Bean
-    public ChatMemory chatMemory() {
-        return MessageWindowChatMemory.withMaxMessages(10);
+    public ChatMemoryProvider chatMemoryProvider() {
+        return memoryId -> MessageWindowChatMemory.withMaxMessages(10);
     }
 }
