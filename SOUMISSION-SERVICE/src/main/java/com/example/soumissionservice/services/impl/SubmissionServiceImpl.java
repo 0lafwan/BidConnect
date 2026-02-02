@@ -16,11 +16,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.springframework.beans.factory.annotation.Qualifier;
+import com.example.soumissionservice.kafka.NotificationProducer;
+import lombok.extern.slf4j.Slf4j;
+import java.time.Instant;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SubmissionServiceImpl implements SubmissionService {
 
     private final SubmissionRepository repo;
@@ -28,8 +32,8 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final DocumentClient documentClient;
     private final AIClient aiClient;
     private final EvaluationService evaluationService;
-    // private final UserClient userClient;
-    // private final NotificationClient notificationClient;
+    private final UserClient userClient;
+    private final NotificationProducer notificationProducer;
 
     @Qualifier("submissionMapperImpl")
     private final SubmissionMapper subMapper;
@@ -72,14 +76,12 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         // 4️⃣ Analyse IA
 
-        //aiClient.ingestFile(new IngestionRequest(s.getDocumentId(),
-        //        "http://localhost:8081/api/documents/" + s.getDocumentId() + "/download"));
+        // aiClient.ingestFile(new IngestionRequest(s.getDocumentId(),
+        // "http://localhost:8081/api/documents/" + s.getDocumentId() + "/download"));
 
         aiClient.ingestFile(new IngestionRequest(
                 s.getDocumentId(),
-                documentServiceUrl + "/api/documents/" + s.getDocumentId() + "/download"
-        ));
-
+                documentServiceUrl + "/api/documents/" + s.getDocumentId() + "/download"));
 
         ChatRequest chatrequest = new ChatRequest(
                 "give me key point's in the submission with the supplierId: " + s.getSupplierId(),
@@ -96,6 +98,32 @@ public class SubmissionServiceImpl implements SubmissionService {
         s.setScore(score);
 
         repo.save(s);
+
+        // 5️⃣ Send Notification to Tender Owner
+        try {
+            //UserResponse owner = userClient.getUser(tender.ownerUserId());
+            UserResponse owner = new UserResponse("1","ayoubaitbarka2003@gmail.com","Ayoub","ait barka",UserRole.OWNER);
+            if (owner != null) {
+                NotificationEvent event = NotificationEvent.builder()
+                        .eventId(UUID.randomUUID())
+                        .eventType(EventType.SUBMISSION_RECEIVED)
+                        .timestamp(Instant.now())
+                        .recipients(List.of(Recipient.builder()
+                                .userId(owner.getId())
+                                .email(owner.getEmail())
+                                .role(UserRole.OWNER)
+                                .build()))
+                        .data(Map.of(
+                                "title", "New Submission Received",
+                                "message", "A new submission has been received for your tender.",
+                                "tenderId", tender.id().toString(),
+                                "supplierId", s.getSupplierId()))
+                        .build();
+                notificationProducer.sendNotificationEvent(event);
+            }
+        } catch (Exception e) {
+            log.error("Failed to send submission received notification: {}", e.getMessage());
+        }
 
         return subMapper.toResponse(s);
     }
@@ -156,8 +184,45 @@ public class SubmissionServiceImpl implements SubmissionService {
     public void updateStatus(String id, SubmissionStatus status) {
 
         Submission s = repo.findById(id).orElse(null);
+        if (s == null)
+            return;
+
+        SubmissionStatus oldStatus = s.getStatus();
         s.setStatus(status);
         repo.save(s);
+
+        // Send Notification to Supplier if status changed to ACCEPTED or REJECTED
+        if ((status == SubmissionStatus.ACCEPTED || status == SubmissionStatus.REJECTED) && oldStatus != status) {
+            try {
+                //UserResponse supplier = userClient.getUser(s.getSupplierId());
+                UserResponse supplier = new UserResponse("1","ayoubaitbarka2003@gmail.com","Ayoub","ait barka",UserRole.SUPPLIER);
+                if (supplier != null) {
+                    EventType eventType = (status == SubmissionStatus.ACCEPTED) ? EventType.SUBMISSION_ACCEPTED
+                            : EventType.SUBMISSION_REJECTED;
+
+                    NotificationEvent event = NotificationEvent.builder()
+                            .eventId(UUID.randomUUID())
+                            .eventType(eventType)
+                            .timestamp(Instant.now())
+                            .recipients(List.of(Recipient.builder()
+                                    .userId(supplier.getId())
+                                    .email(supplier.getEmail())
+                                    .role(UserRole.SUPPLIER)
+                                    .build()))
+                            .data(Map.of(
+                                    "title", "Submission " + status.name(),
+                                    "message",
+                                    "Your submission for tender " + s.getTenderId() + " has been "
+                                            + status.name().toLowerCase() + ".",
+                                    "tenderId", s.getTenderId(),
+                                    "submissionId", s.getId()))
+                            .build();
+                    notificationProducer.sendNotificationEvent(event);
+                }
+            } catch (Exception e) {
+                log.error("Failed to send submission status update notification: {}", e.getMessage());
+            }
+        }
     }
 
 }
