@@ -141,7 +141,7 @@
                 <version>3.5.1</version>
                 <configuration>
                     <to>
-                        <image>jsalahddine/aiservice:v1</image>
+                        <image>jsalahddine/aiservice:v2</image>
                     </to>
                 </configuration>
             </plugin>
