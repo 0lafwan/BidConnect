@@ -70,6 +70,8 @@ services:
         condition: service_healthy
       ai-service:
         condition: service_healthy
+      soumission-service:
+        condition: service_healthy
     environment:
       SPRING_APPLICATION_NAME: "gatewayserver"
       SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
