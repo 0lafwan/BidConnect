@@ -111,6 +111,7 @@ graph TB
 | **Configuration** | Spring Cloud Config Server (Git Backend) |
 | **Communication** | OpenFeign, REST API |
 | **Messaging** | Apache Kafka, RabbitMQ |
+| **Authentification** | Keycloak, OAuth2, OpenID Connect, JWT |
 | **Bases de données** | PostgreSQL, H2 (in-memory) |
 | **Stockage** | MinIO (S3-compatible) |
 | **Vector Database** | Qdrant |
@@ -135,7 +136,7 @@ graph TB
 | **Submission Service** | 8084 | H2 | Gestion des soumissions fournisseurs | ✅ Opérationnel |
 | **AI Service** | 8085 | PostgreSQL + Qdrant | RAG, Chatbot, Analyse documentaire IA | ✅ Opérationnel |
 | **Notification Service** | 8086 | PostgreSQL + Kafka | Notifications événementielles (Email) | ✅ Opéationnel |
-| **User Service** | - | - | Authentification JWT, Gestion utilisateurs | 🚧 En développement |
+| **User Service** | 8083 | - | Authentification OAuth2, Gestion utilisateurs, Keycloak | ✅ Opérationnel |
 
 ### 🔌 Infrastructure Externe
 
@@ -150,6 +151,7 @@ graph TB
 | **MailHog** | 1025 (SMTP), 8025 (Web UI) | Serveur email de test |
 | **RabbitMQ** | 5672 (AMQP), 15672 (Management) | Message broker pour Config refresh |
 | **pgAdmin** | 5050 | Interface web PostgreSQL |
+| **Keycloak** | 8084 | Serveur d'authentification OAuth2/OIDC |
 
 ---
 
@@ -239,6 +241,11 @@ cd ../DOCUMENT-SERVICE
 ./mvnw clean package
 java -jar target/DOCUMENT-SERVICE-0.0.1-SNAPSHOT.jar
 
+# User Service
+cd ../USER-SERVICE
+./mvnw clean package
+java -jar target/USER-SERVICE-0.0.1-SNAPSHOT.jar
+
 # Submission Service
 cd ../SOUMISSION-SERVICE
 ./mvnw clean package
@@ -268,6 +275,7 @@ Vérifiez que tous les services sont enregistrés.
 
 - **Tender Service** : http://localhost:8080/docs
 - **Document Service** : http://localhost:8081/swagger-ui.html
+- **User Service** : http://localhost:8083/swagger-ui.html
 - **Submission Service** : http://localhost:8084/docs
 - **AI Service** : http://localhost:8085/swagger-ui.html
 - **Notification Service** : http://localhost:8086/swagger-ui.html
@@ -280,6 +288,7 @@ Vérifiez que tous les services sont enregistrés.
 - **MailHog** : http://localhost:8025
 - **RabbitMQ Management** : http://localhost:15672 (guest / guest)
 - **pgAdmin** : http://localhost:5050 (admin@bidconnect.com / admin)
+- **Keycloak Admin Console** : http://localhost:8084 (admin / admin)
 
 ---
 
@@ -517,24 +526,77 @@ Les services communiquent via **OpenFeign** (REST synchrone) :
 
 ---
 
-## 🔐 Sécurité (À implémenter)
+## 🔐 Sécurité
 
-### User Service (En développement)
+### User Service avec Keycloak (Opérationnel)
 
-Le **User Service** gérera :
-- Authentification JWT
-- Gestion des rôles (ADMIN, OWNER, SUPPLIER)
-- Refresh tokens
-- Intégration avec Gateway (filtres JWT)
+Le **User Service** est maintenant pleinement opérationnel et intégré avec **Keycloak** pour l'authentification OAuth2/OIDC.
 
-### Recommandations
+#### Architecture de Sécurité
 
-- [ ] Implémenter Spring Security + JWT
-- [ ] Ajouter HTTPS (TLS/SSL)
-- [ ] Secrets management (Vault, AWS Secrets Manager)
-- [ ] Rate limiting sur Gateway
-- [ ] CORS configuration
-- [ ] Audit logging
+```
+Client (Frontend Angular)
+    ↓
+API Gateway (Spring Cloud Gateway)
+    ↓
+User Service (OAuth2 Resource Server)  <----> Keycloak (Auth Server)
+    ↓
+Eureka Server
+```
+
+#### Fonctionnalités Implémentées
+
+**Authentification OAuth2/OIDC** :
+- Keycloak comme serveur d'authentification centralisé
+- User Service comme OAuth2 Resource Server
+- Validation automatique des JWT
+- Séparation claire Auth Server / Resource Server
+
+**Endpoints Sécurisés** :
+- `GET /api/users/me` : Récupération des informations de l'utilisateur authentifié
+- Validation des tokens JWT dans tous les endpoints protégés
+- Extraction automatique des informations utilisateur depuis le token
+
+**Configuration** :
+```yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/bindconnect
+```
+
+**Flux d'Authentification** :
+1. L'utilisateur s'authentifie via Keycloak
+2. Keycloak retourne un JWT
+3. Le client envoie le JWT dans le header `Authorization: Bearer <token>`
+4. User Service vérifie la signature et l'issuer du token
+5. L'accès est accordé ou refusé
+
+#### Intégration avec l'Architecture
+
+- **Enregistré dans Eureka** : Découverte dynamique du service
+- **Accessible via Gateway** : Point d'entrée unique sécurisé
+- **Communication inter-services** : Autres microservices peuvent vérifier l'identité utilisateur
+
+#### Avantages de cette Architecture
+
+✅ **Sécurité moderne** : Standards OAuth2 / OpenID Connect  
+✅ **Stateless** : JWT, pas de session serveur  
+✅ **Scalable** : Microservices indépendants  
+✅ **Centralisé** : Gestion des utilisateurs dans Keycloak  
+✅ **Extensible** : Prêt pour SSO, MFA, fédération d'identité
+
+### Recommandations Futures
+
+- [ ] Implémenter la gestion des rôles métier (ADMIN, OWNER, SUPPLIER)
+- [ ] Ajouter des endpoints de profil utilisateur enrichis
+- [ ] Intégrer la communication inter-services sécurisée
+- [ ] Ajouter HTTPS (TLS/SSL) en production
+- [ ] Implémenter le rate limiting sur Gateway
+- [ ] Configurer CORS pour le frontend
+- [ ] Mettre en place l'audit logging
 
 ---
 
@@ -601,10 +663,49 @@ curl -X GET http://localhost:8080/actuator/health
 4. **Vérifier les emails** : http://localhost:8025 (MailHog)
 5. **Tester le chatbot IA** : `POST http://localhost:8085/api/ai/chat`
 
+### Test de l'authentification (User Service)
+
+#### 1. Obtenir un token depuis Keycloak
+
+```bash
+curl -X POST http://localhost:8084/realms/bindconnect/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=bidconnect-client" \
+  -d "username=testuser" \
+  -d "password=testpass" \
+  -d "grant_type=password"
+```
+
+#### 2. Tester l'endpoint sécurisé
+
+```bash
+curl -X GET http://localhost:8083/api/users/me \
+  -H "Authorization: Bearer <votre-token-jwt>"
+```
+
+**Réponse attendue** :
+```json
+{
+  "username": "f6bdb851-2204-4266-9511-944eeb79a780",
+  "authorities": [
+    { "authority": "SCOPE_email" },
+    { "authority": "SCOPE_profile" }
+  ]
+}
+```
+
+#### 3. Tester sans token (doit échouer)
+
+```bash
+curl -X GET http://localhost:8083/api/users/me
+# Retourne 401 Unauthorized
+```
+
 ---
 
 ## 📚 Documentation Complémentaire
 
+- [User Service README](USER-SERVICE/README.md) - Documentation du service d'authentification
 - [AI Service README](AI-SERVICE/README.md) - Documentation détaillée du module IA
 - [Notification Service README](NOTIFICATION-SERVICE/README.md) - Guide du service de notifications
 - [Notification Service - Quick Start](NOTIFICATION-SERVICE/QUICKSTART.md)
@@ -681,7 +782,7 @@ bidconnect/
 ├── NOTIFICATION-SERVICE/    # Notifications événementielles
 ├── SOUMISSION-SERVICE/      # Gestion soumissions
 ├── TENDER-SERVICE/          # Gestion appels d'offres
-├── USER-SERVICE/            # Authentification (en dev)
+├── USER-SERVICE/            # Authentification OAuth2 + Keycloak
 ├── configserver/            # Config Server
 ├── eurekaserver/            # Service Discovery
 ├── gatewayserver/           # API Gateway
