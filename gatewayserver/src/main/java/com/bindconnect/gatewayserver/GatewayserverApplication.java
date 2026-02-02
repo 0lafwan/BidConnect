@@ -23,7 +23,9 @@ public class GatewayserverApplication {
 				.route(p -> p
 						.path("/bindconnect/tender-service/**")
 						.filters( f -> f.rewritePath("/bindconnect/tender-service/(?<segment>.*)","/${segment}")
-								.addResponseHeader("X-ResponseTime", LocalDateTime.now().toString()))
+								.addResponseHeader("X-ResponseTime", LocalDateTime.now().toString())
+								.circuitBreaker(c -> c.setName("CircuitBreakerForTender")
+										.setFallbackUri("forward:/tenderSupportTeam")))
 						.uri("lb://TENDER-SERVICE"))
 
 				.route(p -> p
