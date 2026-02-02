@@ -48,20 +48,24 @@ management:
     web:
       exposure:
         include: "*"
-  health:
-    readiness-state:
-      enabled: true
-    liveness-state:
-      enabled: true
-  endpoint:  # to enable /shutdown endpoint : to test how eureka deregister works when we call shutdown endpoint.
+
+  endpoint:
     shutdown:
       access: unrestricted
     health:
       probes:
         enabled: true
-  info:  # to enable /info endpoint that we just added below
+
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+
+  info:
     env:
       enabled: true
+
 
 
 eureka:

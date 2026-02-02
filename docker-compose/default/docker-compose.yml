@@ -255,8 +255,8 @@ services:
         condition: service_started
     environment:
       SPRING_APPLICATION_NAME: "USER-SERVICE"
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://host.docker.internal:8084/realms/bindconnect"
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://host.docker.internal:8084/realms/bindconnect/protocol/openid-connect/certs"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://host.docker.internal:8086/realms/bindconnect"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://host.docker.internal:8086/realms/bindconnect/protocol/openid-connect/certs"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
@@ -281,7 +281,7 @@ services:
     depends_on:
       - keycloak-db
     ports:
-      - "8084:8080"
+      - "8086:8080"
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
@@ -296,7 +296,7 @@ services:
 
       # IMPORTANT: fixe l'URL publique (issuer)
       KC_HOSTNAME: host.docker.internal
-      KC_HOSTNAME_PORT: "8084"
+      KC_HOSTNAME_PORT: "8086"
     command: start-dev
     extends:
       file: common-config.yml
