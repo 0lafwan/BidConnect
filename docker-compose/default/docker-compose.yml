@@ -314,4 +314,4 @@ volumes:
     qdrant_storage:
     ai_pg_data:
     rabbit_data:
-    #keycloak_db_data:
+    keycloak_db_data:
