@@ -183,7 +183,7 @@ services:
 
 
   ai-service:
-    image: "jsalahddine/aiservice:v1"
+    image: "jsalahddine/aiservice:v2"
     container_name: ai-ms
     ports:
       - "8085:8085"
