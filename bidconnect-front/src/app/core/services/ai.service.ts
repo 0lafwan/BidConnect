@@ -5,6 +5,8 @@ import { Observable, of, delay } from 'rxjs';
 export interface ChatRequest {
   query: string;
   conversationId?: string;
+  userRole?: string;
+  contextId?: string;
 }
 
 export interface ChatResponse {
@@ -13,30 +15,40 @@ export interface ChatResponse {
   conversationId: string;
 }
 
+import { AuthService } from './auth.service';
+
 @Injectable({
   providedIn: 'root'
 })
 export class AiService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8072/ai-service/api/ai';
-  
+  private authService = inject(AuthService);
+  private apiUrl = '/bindconnect/ai-service/api/ai';
+
   // Mock mode flag - set to false when backend is ready
-  private useMock = true;
+  private useMock = false;
 
   sendMessage(userMessage: string, conversationId?: string): Observable<ChatResponse> {
     if (this.useMock) {
       return this.mockResponse(userMessage, conversationId);
     }
 
-    // REAL IMPLEMENTATION (Ready for backend)
-    // This will work when backend is running
+    // REAL IMPLEMENTATION
     const request: ChatRequest = {
       query: userMessage,
-      conversationId: conversationId
+      conversationId: conversationId,
+      userRole: this.authService.userRole() || undefined,
+      contextId: this.extractContextId() // Try to find tenderId or other context
     };
 
     return this.http.post<ChatResponse>(`${this.apiUrl}/chat`, request);
-    // Note: Authorization header is automatically added by auth.interceptor.ts
+  }
+
+  private extractContextId(): string | undefined {
+    // Basic logic to extract context from URL
+    const url = window.location.href;
+    const match = url.match(/tender\/(\d+)/) || url.match(/submission\/([a-zA-Z0-9-]+)/);
+    return match ? match[1] : undefined;
   }
 
   private mockResponse(userMessage: string, conversationId?: string): Observable<ChatResponse> {
