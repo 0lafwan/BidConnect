@@ -8,6 +8,7 @@ import com.example.tenderservice.entity.enumeration.TenderStatus;
 import com.example.tenderservice.exception.ResourceNotFoundException;
 import com.example.tenderservice.feignclients.AIClient;
 import com.example.tenderservice.feignclients.DocumentClient;
+import com.example.tenderservice.kafka.NotificationProducer;
 import com.example.tenderservice.mapper.TenderMapper;
 import com.example.tenderservice.repository.EvaluationCriterionRepository;
 import com.example.tenderservice.repository.TenderRepository;
@@ -20,8 +21,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,18 +37,18 @@ public class TenderServiceImpl implements ITenderService {
     private final AIClient aiClient;
 
     private final EvaluationCriterionRepository criterionRepository;
+    private final NotificationProducer notificationProducer;
 
     @Value("${services.document.base-url}")
     private String documentServiceUrl;
 
-
     @Override
-    public TenderResponseDTO createTender(TenderRequestDTO dto,List<MultipartFile> files) {
+    public TenderResponseDTO createTender(TenderRequestDTO dto, List<MultipartFile> files) {
         Tender tender = tenderMapper.toEntity(dto);
         tender.setStatus(TenderStatus.DRAFT);
         tender.setPublicationDate(LocalDate.now());
 
-        //  LIAISON CORRECTE DES CRITERIA
+        // LIAISON CORRECTE DES CRITERIA
         if (tender.getCriteria() != null) {
             tender.getCriteria().forEach(c -> c.setTender(tender));
         }
@@ -55,32 +59,30 @@ public class TenderServiceImpl implements ITenderService {
             List<TenderDocumentRef> docRefs = files.stream()
                     .map(file -> {
 
-//                        TenderService n’upload pas de fichiers
-//                        TenderService appelle Document-Service
-//                        TenderService stocke documentId
-//                        L’URL est calculée dans les DTO de réponse, pas en base
+                        // TenderService n’upload pas de fichiers
+                        // TenderService appelle Document-Service
+                        // TenderService stocke documentId
+                        // L’URL est calculée dans les DTO de réponse, pas en base
 
                         String documentId = documentClient.upload(file);
 
                         // AI-SERVICE Ingestion
 
-                        String downloadUrl =
-                                documentServiceUrl + "/api/documents/" + documentId + "/download";
+                        String downloadUrl = documentServiceUrl + "/api/documents/" + documentId + "/download";
 
                         aiClient.ingestFile(new IngestionRequest(documentId, downloadUrl));
 
                         return TenderDocumentRef.builder()
-                                .documentId(documentId)          // ID dans le storage
+                                .documentId(documentId) // ID dans le storage
                                 .fileName(file.getOriginalFilename())
                                 .contentType(file.getContentType())
-                                .tender(tender)                // relation many-to-one
+                                .tender(tender) // relation many-to-one
                                 .build();
                     })
                     .toList();
 
             tender.setDocuments(docRefs);
         }
-
 
         tenderRepository.save(tender);
 
@@ -92,21 +94,21 @@ public class TenderServiceImpl implements ITenderService {
     public TenderResponseDTO updateTender(Long tenderId, TenderRequestDTO dto) {
 
         Tender tender = tenderRepository.findById(tenderId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Tender", "id", tenderId.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("Tender", "id", tenderId.toString()));
 
-        // --- Mise à jour simple des champs : car j'ai trouvé un prob de synchronisation ---
+        // --- Mise à jour simple des champs : car j'ai trouvé un prob de
+        // synchronisation ---
         tender.setTitle(dto.getTitle());
         tender.setDescription(dto.getDescription());
         tender.setDeadline(dto.getDeadline());
         tender.setOrganizationId(dto.getOrganizationId());
         tender.setOwnerUserId(dto.getOwnerUserId());
 
-
         // --- MISE À JOUR DES CRITÈRES ---
 
-        List<EvaluationCriterion> existing = tender.getCriteria();           // base
-        @NotEmpty(message = "Criteria cannot be empty") List<EvaluationCriterionRequestDTO> incoming = dto.getCriteria();              // new DTO
+        List<EvaluationCriterion> existing = tender.getCriteria(); // base
+        @NotEmpty(message = "Criteria cannot be empty")
+        List<EvaluationCriterionRequestDTO> incoming = dto.getCriteria(); // new DTO
 
         for (EvaluationCriterionRequestDTO newC : incoming) {
 
@@ -120,7 +122,6 @@ public class TenderServiceImpl implements ITenderService {
             }
         }
 
-
         // NOTE : on ne touche pas aux documents ici
         // ils peuvent être mis à jour dans un endpoint séparé
 
@@ -128,7 +129,6 @@ public class TenderServiceImpl implements ITenderService {
 
         return tenderMapper.toResponseDTO(saved);
     }
-
 
     @Override
     public boolean deleteTender(Long tenderId) {
@@ -141,9 +141,7 @@ public class TenderServiceImpl implements ITenderService {
 
         // 🔹 SUPPRESSION DES DOCUMENTS DANS DOCUMENT-SERVICE
         if (tender.getDocuments() != null) {
-            tender.getDocuments().forEach(doc ->
-                    documentClient.delete(doc.getDocumentId())
-            );
+            tender.getDocuments().forEach(doc -> documentClient.delete(doc.getDocumentId()));
         }
 
         // 🔹 SUPPRESSION DU TENDER (et des TenderDocumentRef via JPA)
@@ -151,7 +149,6 @@ public class TenderServiceImpl implements ITenderService {
 
         return true;
     }
-
 
     @Override
     public TenderResponseDTO getTenderById(Long tenderId) {
@@ -169,15 +166,13 @@ public class TenderServiceImpl implements ITenderService {
     @Override
     public List<TenderResponseDTO> getTendersByOrganization(Long organizationId) {
         return tenderMapper.toResponseDTOList(
-                tenderRepository.findByOrganizationId(organizationId)
-        );
+                tenderRepository.findByOrganizationId(organizationId));
     }
 
     @Override
     public List<TenderResponseDTO> getTendersByOwnerUser(String ownerUserId) {
         return tenderMapper.toResponseDTOList(
-                tenderRepository.findByOwnerUserId(ownerUserId)
-        );
+                tenderRepository.findByOwnerUserId(ownerUserId));
     }
 
     @Override
@@ -188,7 +183,27 @@ public class TenderServiceImpl implements ITenderService {
         tender.setStatus(TenderStatus.PUBLISHED);
         tenderRepository.save(tender);
 
+        sendTenderPublishedNotification(tender);
+
         return tenderMapper.toResponseDTO(tender);
+    }
+
+    private void sendTenderPublishedNotification(Tender tender) {
+        NotificationEvent event = NotificationEvent.builder()
+                .eventId(UUID.randomUUID())
+                .eventType(EventType.TENDER_PUBLISHED)
+                .timestamp(Instant.now())
+                .recipients(List.of(Recipient.builder()
+                        .userId("system-test")
+                        .email("ayoubaitbarka2003@gmail.com")
+                        .role(UserRole.SUPPLIER)
+                        .build())) // Test recipient for verification
+                .data(Map.of(
+                        "tenderId", tender.getId().toString(),
+                        "title", tender.getTitle(),
+                        "description", tender.getDescription()))
+                .build();
+        notificationProducer.sendNotificationEvent(event);
     }
 
     @Override
@@ -202,22 +217,17 @@ public class TenderServiceImpl implements ITenderService {
         return tenderMapper.toResponseDTO(tender);
     }
 
-
     @Override
     public List<EvaluationCriterionResponseDTO> getCriteriaByTenderId(Long tenderId) {
 
-        List<EvaluationCriterion> criteria =
-                criterionRepository.findByTenderId(tenderId);
+        List<EvaluationCriterion> criteria = criterionRepository.findByTenderId(tenderId);
 
         return criteria.stream()
                 .map(c -> new EvaluationCriterionResponseDTO(
                         c.getId(),
                         c.getType(),
-                        c.getWeight()
-                ))
+                        c.getWeight()))
                 .toList();
     }
 
-
 }
-

@@ -20,8 +20,8 @@ public class NotificationResponse {
     @Schema(description = "Notification ID", example = "1")
     private Long id;
 
-    @Schema(description = "User ID", example = "123")
-    private Long userId;
+    @Schema(description = "User ID", example = "user-123")
+    private String userId;
 
     @Schema(description = "Recipient email address", example = "user@example.com")
     private String email;

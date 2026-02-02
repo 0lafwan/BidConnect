@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class Recipient {
 
     @NotNull
-    private Long userId;
+    private String userId;
 
     @NotNull
     @Email

@@ -57,6 +57,14 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    topic:
+      notification-events: notification-events
+
 management:
   endpoints:
     web:
@@ -105,6 +113,8 @@ info:  # useful in the dashboard of eureka server, went to see application detai
   app:
     name: "tender-service"
     description: "BindConnect Tender Application"
+
+
 
 
 

@@ -19,9 +19,9 @@ public class ScoreCalculator {
 
         for(EvaluationCriterionResponseDTO evaluationCriterionResponseDTO : criteria){
             switch(evaluationCriterionResponseDTO.getType()){
-                case PRICE -> priceweight = evaluationCriterionResponseDTO.getWeight()* submission.getPrice();
-                case TECHNICAL_QUALITY -> technicalweight= evaluationCriterionResponseDTO.getWeight()* submission.getTechnical();
-                case DELIVERY_TIME ->  deliveryweight = evaluationCriterionResponseDTO.getWeight()* submission.getDeadline();
+                case PRICE -> priceweight = (evaluationCriterionResponseDTO.getWeight()/100)* submission.getPrice();
+                case TECHNICAL_QUALITY -> technicalweight= (evaluationCriterionResponseDTO.getWeight()/100)* submission.getTechnical();
+                case DELIVERY_TIME ->  deliveryweight = (evaluationCriterionResponseDTO.getWeight()/100)* submission.getDeadline();
             }
 
         }

@@ -16,8 +16,8 @@ import lombok.NoArgsConstructor;
 public class ManualNotificationRequest {
 
     @NotNull
-    @Schema(description = "User ID", example = "123", required = true)
-    private Long userId;
+    @Schema(description = "User ID", example = "user-123", required = true)
+    private String userId;
 
     @NotBlank
     @Email

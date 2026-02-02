@@ -48,7 +48,7 @@ public class NotificationController {
     @Operation(summary = "Get notifications by user ID", description = "Retrieve all notifications sent to a specific user")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved user notifications")
     public ResponseEntity<List<NotificationResponse>> getNotificationsByUser(
-            @Parameter(description = "User ID", required = true) @PathVariable Long userId) {
+            @Parameter(description = "User ID", required = true) @PathVariable String userId) {
         List<Notification> notifications = notificationRepository.findByUserId(userId);
         return ResponseEntity.ok(notifications.stream()
                 .map(this::toResponse)

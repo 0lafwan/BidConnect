@@ -11,11 +11,11 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByUserId(Long userId);
+    List<Notification> findByUserId(String userId);
 
     List<Notification> findByStatus(NotificationStatus status);
 
     List<Notification> findByEventType(EventType eventType);
 
-    List<Notification> findByUserIdAndStatus(Long userId, NotificationStatus status);
+    List<Notification> findByUserIdAndStatus(String userId, NotificationStatus status);
 }
