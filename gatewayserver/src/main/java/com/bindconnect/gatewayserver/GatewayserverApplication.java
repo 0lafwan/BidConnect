@@ -41,10 +41,17 @@ public class GatewayserverApplication {
 						.uri("lb://DOCUMENT-SERVICE"))
 
 				.route(p -> p
+						.path("/bindconnect/user-service/**")
+						.filters(f -> f.rewritePath("/bindconnect/user-service/(?<segment>.*)", "/${segment}")
+								.addResponseHeader("X-ResponseTime", LocalDateTime.now().toString()))
+						.uri("lb://USER-SERVICE"))
+
+				.route(p -> p
 						.path("/bindconnect/ai-service/**")
 						.filters( f -> f.rewritePath("/bindconnect/ai-service/(?<segment>.*)","/${segment}")
 								.addResponseHeader("X-ResponseTime", LocalDateTime.now().toString()))
 						.uri("lb://AI-SERVICE")).build();
+
 
 
 
