@@ -6,7 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TenderService } from '../../../core/services/tender.service';
 import { SubmissionService } from '../../../core/services/submission.service';
 import { TenderResponse, TenderStatus, TenderCreatePayload, EvaluationCriterionType } from '../../../core/models/tender.model';
-import { SubmissionResponse } from '../../../core/models/submission.model';
+import { SubmissionResponse, SubmissionStatus } from '../../../core/models/submission.model';
 import gsap from 'gsap';
 
 type ViewState = 'LIST' | 'CREATE' | 'DETAILS';
@@ -38,6 +38,8 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
   errorMessage = signal<string | null>(null);
   selectedTender = signal<TenderResponse | null>(null);
   submissions = signal<SubmissionResponse[]>([]);
+  selectedSubmission = signal<SubmissionResponse | null>(null);
+  showSubmissionModal = signal(false);
   selectedFiles = signal<File[]>([]);
 
   // Notifications & Modals
@@ -54,6 +56,7 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
 
   // Enum pour le template
   TenderStatus = TenderStatus;
+  SubmissionStatus = SubmissionStatus;
 
   constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -370,6 +373,60 @@ export class OwnerDashboardComponent implements OnInit, AfterViewInit, OnDestroy
         this.isLoading.set(false);
       }
     });
+  }
+
+  /**
+   * Voir les détails d'une soumission
+   */
+  viewSubmissionDetails(id: string): void {
+    this.isLoading.set(true);
+    this.submissionService.getSubmissionById(id).subscribe({
+      next: (sub) => {
+        this.selectedSubmission.set(sub);
+        this.showSubmissionModal.set(true);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        this.showNotification(`Erreur: ${error.message}`, 'error');
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  closeSubmissionModal(): void {
+    this.showSubmissionModal.set(false);
+    this.selectedSubmission.set(null);
+  }
+
+  /**
+   * Mettre à jour le statut d'une soumission (Accepter/Rejeter)
+   */
+  updateSubmissionStatus(id: string, status: SubmissionStatus): void {
+    const actionLabel = status === SubmissionStatus.ACCEPTED ? 'ACCEPTER' : 'REJETER';
+    const message = status === SubmissionStatus.ACCEPTED
+      ? 'Êtes-vous sûr de vouloir accepter cette offre ? Cette action peut notifier le fournisseur.'
+      : 'Voulez-vous vraiment rejeter cette offre ?';
+
+    this.triggerConfirm(
+      `${actionLabel} LA SOUMISSION`,
+      message,
+      () => {
+        this.isLoading.set(true);
+        this.submissionService.updateStatus(id, { status }).subscribe({
+          next: () => {
+            this.showNotification(`Soumission ${actionLabel.toLowerCase()}e avec succès`, 'success');
+            if (this.selectedTender()) {
+              this.viewTenderDetails(this.selectedTender()!.id);
+            }
+            this.closeSubmissionModal();
+          },
+          error: (error) => {
+            this.showNotification(`Erreur: ${error.message}`, 'error');
+            this.isLoading.set(false);
+          }
+        });
+      }
+    );
   }
 
   /**

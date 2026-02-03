@@ -379,11 +379,12 @@
               <th class="table-header">SCORE IA</th>
               <th class="table-header">ANALYSE RAG</th>
               <th class="table-header">STATUT</th>
+              <th class="table-header text-right">ACTIONS</th>
             </tr>
           </thead>
           <tbody>
             @for (sub of submissions(); track sub.id) {
-            <tr class="tender-row no-click">
+            <tr class="tender-row">
               <td class="table-cell font-bold">{{ sub.supplierId }}</td>
               <td class="table-cell font-mono">{{ sub.price | number:'1.2-2' }}</td>
               <td class="table-cell">
@@ -401,6 +402,33 @@
                   {{ sub.status }}
                 </span>
               </td>
+              <td class="table-cell text-right">
+                <div class="action-buttons">
+                  <button (click)="viewSubmissionDetails(sub.id)" class="btn-action" title="Détails">
+                    <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+
+                  @if (sub.status === SubmissionStatus.SUBMITTED || sub.status === SubmissionStatus.IN_EVALUATION) {
+                  <button (click)="updateSubmissionStatus(sub.id, SubmissionStatus.ACCEPTED)"
+                    class="btn-action btn-publish" title="Accepter">
+                    <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
+                  <button (click)="updateSubmissionStatus(sub.id, SubmissionStatus.REJECTED)"
+                    class="btn-action btn-delete" title="Rejeter">
+                    <svg class="btn-icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  }
+                </div>
+              </td>
             </tr>
             }
           </tbody>
@@ -410,6 +438,105 @@
     </div>
     }
   </div>
+
+  <!-- Submission Details Modal -->
+  @if (showSubmissionModal() && selectedSubmission()) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-brutal-black/80 backdrop-blur-sm" (click)="closeSubmissionModal()"></div>
+    <div
+      class="relative bg-brutal-black border-2 border-white p-8 max-w-2xl w-full shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h3 class="text-xl font-bold uppercase tracking-tight font-space">DÉTAILS DE LA SOUMISSION</h3>
+          <p class="text-white/40 text-xs font-mono mt-1">ID: {{ selectedSubmission()!.id }}</p>
+        </div>
+        <button (click)="closeSubmissionModal()" class="text-white/50 hover:text-white">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div class="space-y-4">
+          <div>
+            <span class="text-[10px] uppercase tracking-widest text-white/40 block mb-1">Fournisseur</span>
+            <span class="text-white font-bold">{{ selectedSubmission()!.supplierId }}</span>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase tracking-widest text-white/40 block mb-1">Prix Proposé</span>
+            <span class="text-xl font-mono text-brutal-neon">{{ selectedSubmission()!.price | number:'1.2-2' }} €</span>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase tracking-widest text-white/40 block mb-1">Délai (jours)</span>
+            <span class="text-white font-mono">{{ selectedSubmission()!.deadline }}</span>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase tracking-widest text-white/40 block mb-1">Statut Actuel</span>
+            <span class="status-badge sub-status-{{selectedSubmission()!.status.toLowerCase()}}">
+              {{ selectedSubmission()!.status }}
+            </span>
+          </div>
+        </div>
+
+        <div class="bg-white/5 p-4 border-l-4 border-brutal-neon">
+          <span class="text-[10px] uppercase tracking-widest text-white/40 block mb-2">Score IA Final</span>
+          <div class="flex items-end gap-2">
+            <span class="text-4xl font-mono font-bold text-brutal-neon">{{ selectedSubmission()!.score | number:'1.1-1'
+              }}</span>
+            <span class="text-white/30 text-sm mb-1">/ 100</span>
+          </div>
+          <div class="w-full bg-white/10 h-2 mt-4">
+            <div class="h-full bg-brutal-neon" [style.width.%]="selectedSubmission()!.score"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-8 p-6 bg-white/[0.02] border border-white/10">
+        <h4 class="text-xs uppercase tracking-widest text-brutal-neon mb-4">Analyse Comparative (RAG)</h4>
+        <p class="text-sm leading-relaxed text-white/80 italic font-serif">
+          "{{ selectedSubmission()!.ragAnalysis || 'Analyse en cours par notre moteur IA...' }}"
+        </p>
+      </div>
+
+      <div class="flex items-center justify-between p-4 bg-white/5 border border-dashed border-white/20 mb-8">
+        <div class="flex items-center gap-3">
+          <svg class="w-6 h-6 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <div>
+            <span class="text-xs font-bold block">Document Technique</span>
+            <span class="text-[10px] text-white/30">{{ selectedSubmission()!.documentId }}</span>
+          </div>
+        </div>
+        <button
+          class="px-4 py-2 border border-white hover:bg-white hover:text-brutal-black transition-all text-[10px] font-bold tracking-widest uppercase">
+          TÉLÉCHARGER
+        </button>
+      </div>
+
+      <div class="flex gap-4">
+        <button (click)="closeSubmissionModal()"
+          class="flex-1 px-4 py-3 border border-white/20 text-white/50 hover:bg-white/5 transition-all uppercase text-xs font-bold tracking-widest">
+          FERMER
+        </button>
+
+        @if (selectedSubmission()!.status === SubmissionStatus.SUBMITTED || selectedSubmission()!.status ===
+        SubmissionStatus.IN_EVALUATION) {
+        <button (click)="updateSubmissionStatus(selectedSubmission()!.id, SubmissionStatus.REJECTED)"
+          class="flex-1 px-4 py-3 border-2 border-brutal-accent text-brutal-accent hover:bg-brutal-accent hover:text-white transition-all uppercase text-xs font-bold tracking-widest">
+          REJETER L'OFFRE
+        </button>
+        <button (click)="updateSubmissionStatus(selectedSubmission()!.id, SubmissionStatus.ACCEPTED)"
+          class="flex-1 px-4 py-3 bg-brutal-neon text-brutal-black hover:bg-brutal-neon/90 transition-all uppercase text-xs font-bold tracking-widest shadow-[4px_4px_0px_0px_rgba(34,255,164,0.3)]">
+          ACCEPTER L'OFFRE
+        </button>
+        }
+      </div>
+    </div>
+  </div>
+  }
 
   <!-- Confirmation Modal Custom -->
   @if (showConfirmModal()) {
