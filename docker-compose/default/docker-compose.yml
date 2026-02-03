@@ -452,6 +452,21 @@ services:
       service: microservice-eureka-config
 
 
+  # Frontend Service
+  bidconnect-front:
+    image: "jsalahddine/bidconnectfront:v1"
+    container_name: bidconnect-front
+    ports:
+      - "4200:80"
+    depends_on:
+      gatewayserver:
+        condition: service_started
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+
+
 
 networks:
   bindconnect:

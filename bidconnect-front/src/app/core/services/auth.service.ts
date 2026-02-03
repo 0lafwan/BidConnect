@@ -13,7 +13,7 @@ export class AuthService {
   private router = inject(Router);
 
   // Configuration
-  private readonly API_URL = 'http://localhost:8072/api/auth';
+  private readonly API_URL = '/api/auth';
   private readonly TOKEN_KEY = 'bidconnect_token';
   private readonly USER_KEY = 'bidconnect_user';
   private readonly MOCK_MODE = true; // Mettre à false quand le backend est prêt
